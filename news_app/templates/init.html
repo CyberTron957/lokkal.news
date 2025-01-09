@@ -1,0 +1,18 @@
+<!-- template.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirect Form</title>
+</head>
+<body>
+    <h1>Enter a URL</h1>
+    <form action="{% url 'enter_pincode' %}" method="POST">
+        {% csrf_token %}
+        <label for="pincode">Enter URL:</label>
+        <input type="text" id="pincode" name="pincode" required>
+        <button type="submit">Go</button>
+    </form>
+</body>
+</html>

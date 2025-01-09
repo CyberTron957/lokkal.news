@@ -143,18 +143,17 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <a  class="nav-brand">NewsPortal</a>
+            <a  class="nav-brand">Website Name</a>
             <button class="mobile-menu-btn">☰</button>
             <ul class="nav-menu">
-                <form id="pincodeForm" action="{% url 'your_post_view' %}" method="post">
+                <form id="pincodeForm" action="{% url 'generate_news' %}" method="post">
                     {% csrf_token %}
                     <input type="hidden" name="pincode" value="{{ pincode }}">
-                    <button type="submit">Click Me</button>
+                    <button type="submit">Refresh News</button>
                 </form>
                 <li><a href="{% url 'post-create' %}" class="nav-link">Create Post</a></li>
-                <li><a href="{% url 'news_view' %}" class="nav-link">News</a></li>
-                <li><a  class="nav-link">Categories</a></li>
-                <li><a  class="nav-link">About</a></li>
+                <li><a href="{% url 'news_view' %}" class="nav-link">All News</a></li>
+                
             </ul>
         </div>
     </nav>
