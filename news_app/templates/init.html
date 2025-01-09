@@ -1,18 +1,43 @@
-<!-- template.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirect Form</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align items to the top */
+            padding-top: 140px; /* Add some space from the top */
+        }
+        .form-container {
+            width: 100%;
+            max-width: 800px;
+        }
+        .form-control {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        .btn-search {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+    </style>
 </head>
 <body>
-    <h1>Enter a URL</h1>
-    <form action="{% url 'enter_pincode' %}" method="POST">
-        {% csrf_token %}
-        <label for="pincode">Enter URL:</label>
-        <input type="text" id="pincode" name="pincode" required>
-        <button type="submit">Go</button>
-    </form>
+    <div class="form-container">
+        <h1 class="text-center mb-4">Enter a Pincode/Area Name to view its news</h1>
+        <form action="{% url 'enter_pincode' %}" method="POST">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="text" id="pincode" name="pincode" class="form-control form-control-lg" placeholder="What area's news are you looking for?" required>
+                <button type="submit" class="btn btn-primary btn-lg btn-search">Go</button>
+            </div>
+        </form>
+    </div>
 </body>
 </html>

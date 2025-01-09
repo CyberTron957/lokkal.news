@@ -1,3 +1,4 @@
+import time
 from .forms import PostForm
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
@@ -87,13 +88,21 @@ def upload_and_generate(request):
     return render(request, 'upload.html')
 
 
+def init_view(request):
+    if request.method == 'POST':
+        pincode = request.POST.get('pincode')
+
+        return redirect(f'/{pincode}/')
+
+    return render(request,'init.html')
+
+
 def news_view(request):
     articles = Article.objects.all()
     return render(request, 'news.html', {'articles': articles})
 
 
 def article_detail(request, article_id):
-    # Fetch the article by its ID
     article = get_object_or_404(Article, pk=article_id)
     return render(request, 'article_detail.html', {'article': article})
 
@@ -114,7 +123,7 @@ def post_create(request):
 def get_posts_content_by_pincode(pincode):
 
     posts = Post.objects.filter(pincode=pincode)    
-    all_content = ' '.join(post.content for post in posts)
+    all_content = '" "'.join(post.content for post in posts)
     
     return all_content
 
@@ -135,7 +144,6 @@ def generate_news(request):
                 cover_image=cover_image_url,
                 pincode=pincode
             )
-
         return redirect(f'/{pincode}/')
     
 def articles_by_pincode(request, pincode):
