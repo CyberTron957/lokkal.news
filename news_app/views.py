@@ -108,13 +108,15 @@ def article_detail(request, article_id):
 
 def post_create(request):
     if request.method == 'POST':
+        pincode = request.POST.get('pincode')
+
         form = PostForm(request.POST)
         if form.is_valid():
             post = form.save(commit=False)
             #post.author = request.user
             post.save()
             messages.success(request, 'Your post has been made!')
-            return redirect('news_view')
+            return redirect(f'/{pincode}/')
     else:
         form = PostForm()
     return render(request, 'post_form.html', {'form': form}) 
