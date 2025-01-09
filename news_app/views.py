@@ -133,6 +133,9 @@ def generate_news(request):
     if request.method == 'POST':
         pincode = request.POST.get('pincode')
 
+        # Remove existing articles for the pincode 
+        Article.objects.filter(pincode=pincode).delete()
+
         comments = get_posts_content_by_pincode(pincode)
         articles = run_gemini(comments)
 

@@ -11,7 +11,13 @@
                         {% csrf_token %}
                         {% for field in form %}
                             <div class="mb-4">
-                                <label class="form-label fs-5">{{ field.label }}</label>
+                                <label class="form-label fs-5">
+                                    {% if field.name == 'pincode' %}
+                                        Pincode/Area
+                                    {% else %}
+                                        {{ field.label }}
+                                    {% endif %}
+                                </label>
                                 {{ field }}
                             </div>
                         {% endfor %}

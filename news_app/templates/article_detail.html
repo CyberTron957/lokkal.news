@@ -4,10 +4,42 @@
 
 {% block extra_css %}
 <style>
+    .page-container {
+        display: flex;
+        justify-content: center;
+        gap: 50px;
+        margin: 0px;
+    }
+
+    .ad-container {
+        width: 200px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .ad-card {
+        flex: 1;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        overflow: hidden;
+        background-color: #f9f9f9;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ad-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
     .article-container {
         max-width: 800px;
-        margin: 0 auto;
         padding: 20px;
+        margin-right: 20px;
     }
 
     .article-header {
@@ -24,7 +56,7 @@
     }
 
     .cover-image-container {
-        margin: 2rem 0;
+        margin: 0 0;
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -69,23 +101,42 @@
 {% endblock %}
 
 {% block content %}
-<article class="article-container">
-    <header class="article-header">
-        <h1>{{ article.title }}</h1>
-    </header>
+<div class="page-container">
+    <aside class="ad-container">
+        <div class="ad-card">
+            <a href="https://imgbb.com/"><img src="https://i.ibb.co/T8gk9C3/Screenshot-2025-01-09-at-7-14-31-PM.png" alt="Screenshot-2025-01-09-at-7-14-31-PM" border="0" /></a>
+        </div>
+        <div class="ad-card">
+            <a href="https://imgbb.com/"><img src="https://i.ibb.co/PCqg8Jb/Screenshot-2025-01-09-at-7-14-36-PM.png" alt="Screenshot-2025-01-09-at-7-14-36-PM" border="0" /></a>
+        </div>
+    </aside>
 
-    {% if article.cover_image %}
-    <div class="cover-image-container">
-        <img class="cover-image" src="{{ article.cover_image }}" alt="Cover Image">
-    </div>
-    {% endif %}
+    <article class="article-container">
+        <header class="article-header">
+            <h1>{{ article.title }}</h1>
+        </header>
 
-    <div class="article-content">
-        {{ article.content }}
-    </div>
+        {% if article.cover_image %}
+        <div class="cover-image-container">
+            <img class="cover-image" src="{{ article.cover_image }}" alt="Cover Image">
+        </div>
+        {% endif %}
 
-    <footer>
-        <a href="{% url 'news_view' %}" class="back-link">← Back to Articles</a>
-    </footer>
-</article>
+        <div class="article-content">
+            {{ article.content }}
+        </div>
+
+        <footer>
+            <a href="{% url 'news_view' %}" class="back-link">← Back to Articles</a>
+        </footer>
+    </article>
+
+    <aside class="ad-container">
+        <div class="ad-card">
+            <a href="https://imgbb.com/"><img src="https://i.ibb.co/jv7YmD2/Screenshot-2025-01-09-at-7-14-42-PM.png" alt="Screenshot-2025-01-09-at-7-14-42-PM" border="0" /></a>        </div>
+        <div class="ad-card">
+            <a href="https://imgbb.com/"><img src="https://i.ibb.co/jbQzcj7/Screenshot-2025-01-09-at-7-14-47-PM.png" border="0" /></a> 
+        </div>
+    </aside>
+</div>
 {% endblock %}
