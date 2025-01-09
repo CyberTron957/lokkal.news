@@ -1,11 +1,13 @@
-import random
+from .forms import PostForm
+from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.files.storage import default_storage
-from .models import Article
+from .models import Article,Post
 from django.conf import settings
 import google.generativeai as genai
 import requests
 import json
+from django.http import JsonResponse
 
 genai.configure(api_key='AIzaSyDf2x-ENW14KrJEJZSIgY4LLnTv6ns52bQ')
 
@@ -94,3 +96,54 @@ def article_detail(request, article_id):
     # Fetch the article by its ID
     article = get_object_or_404(Article, pk=article_id)
     return render(request, 'article_detail.html', {'article': article})
+
+def post_create(request):
+    if request.method == 'POST':
+        form = PostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            #post.author = request.user
+            post.save()
+            messages.success(request, 'Your post has been made!')
+            return redirect('news_view')
+    else:
+        form = PostForm()
+    return render(request, 'post_form.html', {'form': form}) 
+
+
+def get_posts_content_by_pincode(pincode):
+
+    posts = Post.objects.filter(pincode=pincode)    
+    all_content = ' '.join(post.content for post in posts)
+    
+    return all_content
+
+
+
+def generate_news(request):
+    if request.method == 'POST':
+        pincode = request.POST.get('pincode')
+
+        comments = get_posts_content_by_pincode(pincode)
+        articles = run_gemini(comments)
+
+        for article_data in articles:
+            cover_image_url = fetch_cover_image(article_data['title'] or article_data['content'])
+            Article.objects.create(
+                title=article_data['title'],
+                content=article_data['content'],
+                cover_image=cover_image_url,
+                pincode=pincode
+            )
+
+        return redirect(f'/{pincode}/')
+    
+def articles_by_pincode(request, pincode):
+    # Query the posts with the specific pincode
+    articles = Article.objects.filter(pincode=pincode)
+    
+    context = {
+        'pincode': pincode,
+        'articles': articles,
+    }
+    return render(request, 'news.html', context)

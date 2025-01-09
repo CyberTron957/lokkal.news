@@ -1,123 +1,91 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ article.title }}</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
+{% extends "base.html" %}
 
-        body {
-            background-color: #f8f9fa;
-            color: #2d3436;
-            line-height: 1.6;
-        }
+{% block title %}{{ article.title }} | NewsPortal{% endblock %}
 
-        .article-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
+{% block extra_css %}
+<style>
+    .article-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
 
-        .article-header {
-            margin-bottom: 2rem;
-            text-align: center;
-        }
+    .article-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
 
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #2d3436;
-            margin-bottom: 1.5rem;
-            line-height: 1.3;
-        }
+    h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2d3436;
+        margin-bottom: 1.5rem;
+        line-height: 1.3;
+    }
 
-        .cover-image-container {
-            margin: 2rem 0;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
+    .cover-image-container {
+        margin: 2rem 0;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
 
-        .cover-image {
-            width: 100%;
-            height: auto;
-            display: block;
-            transition: transform 0.3s ease;
-        }
+    .cover-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        transition: transform 0.3s ease;
+    }
 
-        .cover-image:hover {
-            transform: scale(1.02);
-        }
+    .cover-image:hover {
+        transform: scale(1.02);
+    }
 
-        .article-content {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: #4a4a4a;
-            margin-bottom: 2rem;
-        }
+    .article-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #4a4a4a;
+        margin-bottom: 2rem;
+    }
 
-        .article-content p {
-            margin-bottom: 1.5rem;
-        }
+    .back-link {
+        display: inline-block;
+        padding: 12px 24px;
+        background-color: #3498db;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-top: 2rem;
+    }
 
-        .back-link {
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #3498db;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            margin-top: 2rem;
-        }
+    .back-link:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+    }
+</style>
+{% endblock %}
 
-        .back-link:hover {
-            background-color: #2980b9;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
-        }
+{% block content %}
+<article class="article-container">
+    <header class="article-header">
+        <h1>{{ article.title }}</h1>
+    </header>
 
-        @media (max-width: 768px) {
-            .article-container {
-                padding: 20px 15px;
-            }
+    {% if article.cover_image %}
+    <div class="cover-image-container">
+        <img class="cover-image" src="{{ article.cover_image }}" alt="Cover Image">
+    </div>
+    {% endif %}
 
-            h1 {
-                font-size: 2rem;
-            }
+    <div class="article-content">
+        {{ article.content }}
+    </div>
 
-            .article-content {
-                font-size: 1rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <article class="article-container">
-        <header class="article-header">
-            <h1>{{ article.title }}</h1>
-        </header>
-
-        {% if article.cover_image %}
-        <div class="cover-image-container">
-            <img class="cover-image" src="{{ article.cover_image }}" alt="Cover Image">
-        </div>
-        {% endif %}
-
-        <div class="article-content">
-            {{ article.content }}
-        </div>
-
-        <footer>
-            <a href="{% url 'news_view' %}" class="back-link">← Back to Articles</a>
-        </footer>
-    </article>
-</body>
-</html>
+    <footer>
+        <a href="{% url 'news_view' %}" class="back-link">← Back to Articles</a>
+    </footer>
+</article>
+{% endblock %}
