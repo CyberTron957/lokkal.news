@@ -11,30 +11,101 @@
             margin: 0;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Align items to the top */
-            padding-top: 140px; /* Add some space from the top */
+            align-items: flex-start;
+            padding-top: 100px;
         }
+
         .form-container {
             width: 100%;
             max-width: 800px;
+            padding: 0 15px;
         }
+
         .form-control {
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
         }
+
         .btn-search {
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
+            width: 60px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 576px) {
+            body, html {
+                padding-top: 100px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .form-control-lg {
+                font-size: 1rem;
+                height: calc(1.5em + 1rem + 2px);
+                padding: 0.5rem 0.75rem;
+            }
+
+            .btn-lg {
+                padding: 0.5rem 0.75rem;
+                font-size: 1rem;
+            }
+
+            .form-container {
+                padding: 0 10px;
+            }
+
+            /* Adjust placeholder text size for better visibility */
+            .form-control::placeholder {
+                font-size: 0.9rem;
+            }
+
+            /* Make input take less space relative to button */
+            .input-group {
+                display: flex;
+                flex-wrap: nowrap;
+            }
+
+            .form-control {
+                flex: 1;
+                min-width: 0; /* Prevents input from overflowing */
+            }
+        }
+
+        /* Additional optimization for very small screens */
+        @media (max-width: 360px) {
+            h1 {
+                font-size: 1.25rem;
+            }
+
+            .form-control::placeholder {
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="form-container">
-        <h1 class="text-center mb-4">Enter a Pincode/Area Name to view its news</h1>
+        <h1 class="text-center">Enter a Pincode/Area Name to view its news</h1>
         <form action="{% url 'enter_pincode' %}" method="POST">
             {% csrf_token %}
             <div class="input-group">
-                <input type="text" id="pincode" name="pincode" class="form-control form-control-lg" placeholder="What area's news are you looking for?" required>
+                <input 
+                    type="text" 
+                    id="pincode" 
+                    name="pincode" 
+                    class="form-control form-control-lg" 
+                    placeholder="What area's news are you looking for?"
+                    required
+                >
                 <button type="submit" class="btn btn-primary btn-lg btn-search">Go</button>
             </div>
         </form>

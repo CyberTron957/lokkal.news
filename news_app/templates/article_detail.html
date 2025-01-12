@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
 {% block title %}{{ article.title }} | NewsPortal{% endblock %}
-
 {% block extra_css %}
 <style>
     .page-container {
@@ -10,14 +8,12 @@
         gap: 50px;
         margin: 0px;
     }
-
     .ad-container {
         width: 200px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
     }
-
     .ad-card {
         flex: 1;
         border: 1px solid #ddd;
@@ -29,24 +25,20 @@
         align-items: center;
         justify-content: center;
     }
-
     .ad-card img {
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
-
     .article-container {
         max-width: 800px;
         padding: 20px;
         margin-right: 20px;
     }
-
     .article-header {
         margin-bottom: 2rem;
         text-align: center;
     }
-
     h1 {
         font-size: 2.5rem;
         font-weight: 700;
@@ -54,32 +46,27 @@
         margin-bottom: 1.5rem;
         line-height: 1.3;
     }
-
     .cover-image-container {
         margin: 0 0;
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     }
-
     .cover-image {
         width: 100%;
         height: auto;
         display: block;
         transition: transform 0.3s ease;
     }
-
     .cover-image:hover {
         transform: scale(1.02);
     }
-
     .article-content {
         font-size: 1.1rem;
         line-height: 1.8;
         color: #4a4a4a;
         margin-bottom: 2rem;
     }
-
     .back-link {
         display: inline-block;
         padding: 12px 24px;
@@ -91,15 +78,45 @@
         transition: all 0.3s ease;
         margin-top: 2rem;
     }
-
     .back-link:hover {
         background-color: #2980b9;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
     }
+
+    /* Mobile Responsive Styles */
+    @media screen and (max-width: 768px) {
+        .page-container {
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .ad-container {
+            display: none; /* Hide ad containers on mobile */
+        }
+
+        .article-container {
+            max-width: 100%;
+            padding: 10px; /* Reduced padding for mobile */
+            margin-right: 0;
+        }
+
+        h1 {
+            font-size: 1.8rem; /* Smaller heading for mobile */
+        }
+
+        .article-content {
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .cover-image-container {
+            margin: 0;
+            border-radius: 8px;
+        }
+    }
 </style>
 {% endblock %}
-
 {% block content %}
 <div class="page-container">
     <aside class="ad-container">
@@ -110,30 +127,26 @@
             <a href="https://imgbb.com/"><img src="https://i.ibb.co/PCqg8Jb/Screenshot-2025-01-09-at-7-14-36-PM.png" alt="Screenshot-2025-01-09-at-7-14-36-PM" border="0" /></a>
         </div>
     </aside>
-
     <article class="article-container">
         <header class="article-header">
             <h1>{{ article.title }}</h1>
         </header>
-
         {% if article.cover_image %}
         <div class="cover-image-container">
             <img class="cover-image" src="{{ article.cover_image }}" alt="Cover Image">
         </div>
         {% endif %}
-
         <div class="article-content">
             {{ article.content }}
         </div>
-
         <footer>
-            <a href="{% url 'news_view' %}" class="back-link">← Back to Articles</a>
+            <a href="{{ previous_url }}" class="back-link">← Back to Articles</a>
         </footer>
     </article>
-
     <aside class="ad-container">
         <div class="ad-card">
-            <a href="https://imgbb.com/"><img src="https://i.ibb.co/jv7YmD2/Screenshot-2025-01-09-at-7-14-42-PM.png" alt="Screenshot-2025-01-09-at-7-14-42-PM" border="0" /></a>        </div>
+            <a href="https://imgbb.com/"><img src="https://i.ibb.co/jv7YmD2/Screenshot-2025-01-09-at-7-14-42-PM.png" alt="Screenshot-2025-01-09-at-7-14-42-PM" border="0" /></a>
+        </div>
         <div class="ad-card">
             <a href="https://imgbb.com/"><img src="https://i.ibb.co/jbQzcj7/Screenshot-2025-01-09-at-7-14-47-PM.png" border="0" /></a> 
         </div>

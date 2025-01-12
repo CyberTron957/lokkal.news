@@ -104,7 +104,8 @@ def news_view(request):
 
 def article_detail(request, article_id):
     article = get_object_or_404(Article, pk=article_id)
-    return render(request, 'article_detail.html', {'article': article})
+    previous_url = request.META.get('HTTP_REFERER', 'news_view')
+    return render(request, 'article_detail.html', {'article': article, 'previous_url': previous_url})
 
 def post_create(request):
     if request.method == 'POST':
@@ -113,6 +114,8 @@ def post_create(request):
         form = PostForm(request.POST)
         if form.is_valid():
             post = form.save(commit=False)
+            post.content = request.POST.get('content')
+
             #post.author = request.user
             post.save()
             messages.success(request, 'Your post has been made!')
