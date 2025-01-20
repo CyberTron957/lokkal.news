@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,14 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirect Form</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <style>
         body, html {
             height: 100%;
+            width:100%;
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            padding-top: 100px;
+            padding-top: 2rem;
+            background-color:#D7D7E1
         }
 
         .form-container {
@@ -24,17 +29,48 @@
         .form-control {
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
+            border-radius:100px
         }
 
         .btn-search {
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
             width: 60px;
+            border-radius:100px
+
         }
 
         h1 {
             font-size: 2.5rem;
             margin-bottom: 1.5rem;
+        }
+        .search-image {
+            width: 80%; /* Set to 80% for responsiveness */
+            max-width: 400px; /* Limit max width for large screens */
+            height: auto;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .dropdown {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            border: 1px solid #ccc;
+            border-radius:50px;
+            max-height: 150px;
+            overflow-y: auto;
+            position: absolute;
+            width: 200px;
+            background: white;
+            display: none;
+        }
+        .dropdown li {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .dropdown li:hover {
+            background-color: #f0f0f0;
         }
 
         /* Mobile Optimizations */
@@ -94,7 +130,7 @@
 </head>
 <body>
     <div class="form-container">
-        <h1 class="text-center">Enter a Pincode/Area Name to view its news</h1>
+        <img src="{% static 'news_app/images/logo.jpeg' %}" alt="Image" class="search-image">
         <form action="{% url 'enter_pincode' %}" method="POST">
             {% csrf_token %}
             <div class="input-group">
@@ -103,12 +139,55 @@
                     id="pincode" 
                     name="pincode" 
                     class="form-control form-control-lg" 
-                    placeholder="What area's news are you looking for?"
+                    placeholder="Enter a Pincode/Area Name to view its news"
                     required
                 >
                 <button type="submit" class="btn btn-primary btn-lg btn-search">Go</button>
             </div>
         </form>
+        <ul id="suggestions" class="dropdown"></ul>
     </div>
 </body>
+<script>
+    $(document).ready(function(){
+        $('#pincode').on('keyup', function(){
+            var query = $(this).val();
+            if (query.length > 2) {
+                $.ajax({
+                    url: 'autocomplete/pincode/',
+                    data: {
+                        'term': query
+                    },
+                    success: function(data) {
+                        $('#suggestions').empty(); // Clear previous suggestions
+                        if (data.length > 0) {
+                            $('#suggestions').show(); // Show the dropdown
+                            data.forEach(function(item){
+                                $('#suggestions').append('<li>' + item + '</li>');
+                            });
+                        } else {
+                            $('#suggestions').hide(); // Hide if no suggestions
+                        }
+                    }
+                });
+            } else {
+                $('#suggestions').hide(); // Hide the dropdown if input is too short
+            }
+        });
+    
+        // Handle clicking on a suggestion
+        $(document).on('click', '#suggestions li', function(){
+            $('#pincode').val($(this).text()); // Set the input value to the clicked suggestion
+            $('#suggestions').hide(); // Hide the dropdown
+        });
+    
+        // Hide the dropdown when clicking outside
+        $(document).click(function(e) {
+            if (!$(e.target).closest('#pincode').length) {
+                $('#suggestions').hide();
+            }
+        });
+    });
+    
+</script>
 </html>

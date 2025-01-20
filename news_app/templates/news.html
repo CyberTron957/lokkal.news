@@ -123,9 +123,9 @@
 
 {% block content %}
 <div class="container">
-    <!-- Featured News Section -->
-    <section class="featured-news">
-        {% if articles %}
+    {% if articles %}
+        <!-- Featured News Section -->
+        <section class="featured-news">
             {% with featured_article=articles.0 %}
                 <article class="featured-article">
                     <img src="{{ featured_article.cover_image }}" alt="Featured News">
@@ -136,12 +136,11 @@
                     </div>
                 </article>
             {% endwith %}
-        {% endif %}
-    </section>
-
-    <!-- News Grid Section -->
-    <section class="news-grid">
-        {% for article in articles|slice:"1:" %}
+        </section>
+        
+        <!-- News Grid Section -->
+        <section class="news-grid">
+            {% for article in articles|slice:"1:" %}
             <article class="news-card">
                 <img src="{{ article.cover_image }}" alt="{{ article.title }}">
                 <div class="content">
@@ -150,7 +149,13 @@
                     <p class="timestamp">{{ article.created_at|timesince }} ago</p>
                 </div>
             </article>
-        {% endfor %}
-    </section>
+            {% endfor %}
+        </section>
+    {% else %}
+        <p style="font-size: 3rem; color: #333; font-family: 'Arial', sans-serif; text-align: center; margin-top:4rem">Nothing to see here!</p>
+        <p style="font-size: 1.2rem; color: #333; font-family: 'Arial', sans-serif; text-align: center;margin-top:2rem" >No news generated for this area yet.
+            Try creating a post and refreshing the news
+        </p>
+    {% endif %}
 </div>
 {% endblock %}

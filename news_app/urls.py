@@ -9,6 +9,7 @@ urlpatterns = [
     path('post/new/', views.post_create, name='post-create'),
     path('generate-news/', views.generate_news, name='generate_news'), # type: ignore
     path('<str:pincode>/', views.articles_by_pincode, name='posts_by_pincode'),
+    path('autocomplete/pincode/', views.autocomplete_pincode, name='autocomplete_pincode'),
 
 
 ]

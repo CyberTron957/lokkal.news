@@ -97,6 +97,13 @@ def init_view(request):
     return render(request,'init.html')
 
 
+def autocomplete_pincode(request):
+    if 'term' in request.GET:
+        qs = Article.objects.filter(pincode__icontains=request.GET.get('term'))
+        pincode = list(set(pin.capitalize() for pin in qs.values_list('pincode', flat=True)))
+        return JsonResponse(pincode, safe=False)
+    return JsonResponse([], safe=False)
+
 def news_view(request):
     articles = Article.objects.all()
     return render(request, 'news.html', {'articles': articles})
