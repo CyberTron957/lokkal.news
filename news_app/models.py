@@ -13,6 +13,14 @@ class Article(models.Model):
     def __str__(self):
         return self.title
 
+
+class questions(models.Model):
+    question = models.CharField(max_length=255)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.question
+    
 class Post(models.Model):
     content = models.TextField()
     date_posted = models.DateTimeField(default=timezone.now)
