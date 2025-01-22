@@ -3,7 +3,7 @@ from .forms import PostForm
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.files.storage import default_storage
-from .models import Article,Post
+from .models import Article,Post,questions
 from django.conf import settings
 import google.generativeai as genai
 import requests
@@ -45,6 +45,33 @@ def run_gemini(text):
         print(f"Error: {e}")
         return []
 
+def generate_article_qs(article):
+    try:
+        schema = {
+            "type": "object",
+            "properties": {
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": ["questions"]
+        }
+
+        model = genai.GenerativeModel(
+            'gemini-1.5-flash',
+            generation_config={"response_mime_type": "application/json",
+                               "response_schema": schema}
+        )
+
+        response = model.generate_content(f"As an AI tasked with enhancing community engagement, please generate 4-5 insightful short questions based on the following article. These questions should encourage readers to share their own experiences or provide additional comments that could enrich the article: Title: {article.title}. Content: {article.content}")
+        parsed_data = json.loads(response.text)
+        return parsed_data['questions']
+    except Exception as e:
+        print(f"Error: {e}")
+        return []
 
 def fetch_cover_image(query):
     try:
@@ -90,7 +117,7 @@ def upload_and_generate(request):
 
 def init_view(request):
     if request.method == 'POST':
-        pincode = request.POST.get('pincode')
+        pincode = request.POST.get('pincode').lower()
 
         return redirect(f'/{pincode}/')
 
@@ -112,11 +139,27 @@ def news_view(request):
 def article_detail(request, article_id):
     article = get_object_or_404(Article, pk=article_id)
     previous_url = request.META.get('HTTP_REFERER', 'news_view')
-    return render(request, 'article_detail.html', {'article': article, 'previous_url': previous_url})
+    
+        # Check if questions already exist for the article
+    if not questions.objects.filter(article=article).exists():
+        questions_data = generate_article_qs(article)
+        for question in questions_data:
+            questions.objects.create(
+                question=question,
+                article=article
+            )
+
+    context = {
+        'article': article,
+        'questions': questions.objects.filter(article=article),
+        'previous_url': previous_url
+    }
+    return render(request, 'article_detail.html', context)
 
 def post_create(request):
+   
     if request.method == 'POST':
-        pincode = request.POST.get('pincode')
+        pincode = request.POST.get('pincode').lower()  # Save pincode in lower case
 
         form = PostForm(request.POST)
         if form.is_valid():
@@ -128,7 +171,9 @@ def post_create(request):
             messages.success(request, 'Your post has been made!')
             return redirect(f'/{pincode}/')
     else:
-        form = PostForm()
+        content = request.GET.get('content', '')
+        pincode = request.GET.get('pincode', '')
+        form = PostForm(initial={'pincode': pincode, 'content': content})
     return render(request, 'post_form.html', {'form': form}) 
 
 
@@ -162,9 +207,7 @@ def generate_news(request):
         return redirect(f'/{pincode}/')
     
 def articles_by_pincode(request, pincode):
-    # Query the posts with the specific pincode
     articles = Article.objects.filter(pincode=pincode)
-    
     context = {
         'pincode': pincode,
         'articles': articles,
