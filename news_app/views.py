@@ -66,7 +66,7 @@ def generate_article_qs(article):
                                "response_schema": schema}
         )
 
-        response = model.generate_content(f"As an AI tasked with enhancing community engagement, please generate 4-5 insightful short questions based on the following article. These questions should encourage readers to share their own experiences or provide additional comments that could enrich the article: Title: {article.title}. Content: {article.content}")
+        response = model.generate_content(f"As an AI tasked with enhancing community engagement, please generate 3 insightful short questions based on the following article. These questions should encourage readers to share their own experiences or provide additional comments that could enrich the article: Title: {article.title}. Content: {article.content}")
         parsed_data = json.loads(response.text)
         return parsed_data['questions']
     except Exception as e:
@@ -139,7 +139,7 @@ def news_view(request):
 def article_detail(request, article_id):
     article = get_object_or_404(Article, pk=article_id)
     previous_url = request.META.get('HTTP_REFERER', 'news_view')
-    
+
         # Check if questions already exist for the article
     if not questions.objects.filter(article=article).exists():
         questions_data = generate_article_qs(article)
@@ -157,7 +157,7 @@ def article_detail(request, article_id):
     return render(request, 'article_detail.html', context)
 
 def post_create(request):
-   
+
     if request.method == 'POST':
         pincode = request.POST.get('pincode').lower()  # Save pincode in lower case
 
@@ -174,14 +174,14 @@ def post_create(request):
         content = request.GET.get('content', '')
         pincode = request.GET.get('pincode', '')
         form = PostForm(initial={'pincode': pincode, 'content': content})
-    return render(request, 'post_form.html', {'form': form}) 
+    return render(request, 'post_form.html', {'form': form})
 
 
 def get_posts_content_by_pincode(pincode):
 
-    posts = Post.objects.filter(pincode=pincode)    
+    posts = Post.objects.filter(pincode=pincode)
     all_content = '" "'.join(post.content for post in posts)
-    
+
     return all_content
 
 
@@ -190,7 +190,7 @@ def generate_news(request):
     if request.method == 'POST':
         pincode = request.POST.get('pincode')
 
-        # Remove existing articles for the pincode 
+        # Remove existing articles for the pincode
         Article.objects.filter(pincode=pincode).delete()
 
         comments = get_posts_content_by_pincode(pincode)
@@ -205,7 +205,7 @@ def generate_news(request):
                 pincode=pincode
             )
         return redirect(f'/{pincode}/')
-    
+
 def articles_by_pincode(request, pincode):
     articles = Article.objects.filter(pincode=pincode)
     context = {
