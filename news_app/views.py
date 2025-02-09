@@ -10,7 +10,7 @@ import requests
 import json
 from django.http import JsonResponse
 
-genai.configure(api_key='AIzaSyDf2x-ENW14KrJEJZSIgY4LLnTv6ns52bQ')
+genai.configure(api_key='YOUR_API_KEY')
 
 def run_gemini(text):
     try:
@@ -78,7 +78,7 @@ def fetch_cover_image(query):
         url = f"https://api.unsplash.com/search/photos"
         params = {
             "query": query,
-            "client_id":"LSOUqV2JJVVQMYMapOqQdsMKkC1_Nrmu0w45m5NHpQc",
+            "client_id":"YOUR_CLIENT_ID",
             "per_page": 1
         }
         response = requests.get(url, params=params)
