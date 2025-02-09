@@ -14,7 +14,7 @@ from django.urls import resolve
 from django.utils import timezone
 from datetime import timedelta
 
-genai.configure(api_key='AIzaSyDf2x-ENW14KrJEJZSIgY4LLnTv6ns52bQremove')
+genai.configure(api_key='AIzaSyDf2x-ENW14KrJEJZSIgY4LLnTv6ns52bQ')
 
 def run_gemini(text):
     try:
