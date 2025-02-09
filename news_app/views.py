@@ -3,14 +3,18 @@ from .forms import PostForm
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.files.storage import default_storage
-from .models import Article,Post,questions
+from .models import Article,Post,questions, URLModel
 from django.conf import settings
 import google.generativeai as genai
 import requests
 import json
 from django.http import JsonResponse
+from django.db.models import Count
+from django.urls import resolve
+from django.utils import timezone
+from datetime import timedelta
 
-genai.configure(api_key='YOUR_API_KEY')
+genai.configure(api_key='AIzaSyDf2x-ENW14KrJEJZSIgY4LLnTv6ns52bQremove')
 
 def run_gemini(text):
     try:
@@ -66,7 +70,7 @@ def generate_article_qs(article):
                                "response_schema": schema}
         )
 
-        response = model.generate_content(f"As an AI tasked with enhancing community engagement, please generate 3 insightful short questions based on the following article. These questions should encourage readers to share their own experiences or provide additional comments that could enrich the article: Title: {article.title}. Content: {article.content}")
+        response = model.generate_content(f"As an AI tasked with enhancing community engagement, please generate 3  insightful short questions based on the following article. These questions should encourage readers to share their own experiences or provide additional comments that could enrich the article: Title: {article.title}. Content: {article.content}")
         parsed_data = json.loads(response.text)
         return parsed_data['questions']
     except Exception as e:
@@ -78,7 +82,7 @@ def fetch_cover_image(query):
         url = f"https://api.unsplash.com/search/photos"
         params = {
             "query": query,
-            "client_id":"YOUR_CLIENT_ID",
+            "client_id":"LSOUqV2JJVVQMYMapOqQdsMKkC1_Nrmu0w45m5NHpQc",
             "per_page": 1
         }
         response = requests.get(url, params=params)
@@ -118,10 +122,39 @@ def upload_and_generate(request):
 def init_view(request):
     if request.method == 'POST':
         pincode = request.POST.get('pincode').lower()
-
         return redirect(f'/{pincode}/')
 
-    return render(request,'init.html')
+    # Get trending pages from the last 7 days
+    excluded_paths = ['upload/', 'news/', 'post/', 'generate-news/', 'autocomplete/','article/']
+
+
+   
+    trending_pages = (
+        URLModel.objects.filter(
+            created_at__gte=timezone.now() - timedelta(days=7),is_article=False
+        ).exclude(
+            path__in=excluded_paths
+        ).annotate(
+            visit_count=Count('visits')
+        ).order_by('-visit_count')[:8]
+    )
+
+    trending_articles = URLModel.objects.filter(is_article=True).order_by('-visits')[:10]
+    # Filter out trending articles from trending pages and get their IDs
+    trending_article_ids = [int(article.path.split('/')[1]) for article in trending_articles]
+
+    # # Exclude trending articles from trending pages
+    # trending_pages = [page for page in trending_pages if not page.path.startswith('article/')]
+
+    # # Get all articles by their IDs
+    trending_articles = Article.objects.filter(id__in=trending_article_ids)
+
+    context = {
+        'trending_pages': trending_pages,
+        'trending_articles': trending_articles
+    }
+    
+    return render(request, 'init.html', context)
 
 
 def autocomplete_pincode(request):
@@ -139,7 +172,7 @@ def news_view(request):
 def article_detail(request, article_id):
     article = get_object_or_404(Article, pk=article_id)
     previous_url = request.META.get('HTTP_REFERER', 'news_view')
-
+    
         # Check if questions already exist for the article
     if not questions.objects.filter(article=article).exists():
         questions_data = generate_article_qs(article)
@@ -157,7 +190,7 @@ def article_detail(request, article_id):
     return render(request, 'article_detail.html', context)
 
 def post_create(request):
-
+   
     if request.method == 'POST':
         pincode = request.POST.get('pincode').lower()  # Save pincode in lower case
 
@@ -174,14 +207,14 @@ def post_create(request):
         content = request.GET.get('content', '')
         pincode = request.GET.get('pincode', '')
         form = PostForm(initial={'pincode': pincode, 'content': content})
-    return render(request, 'post_form.html', {'form': form})
+    return render(request, 'post_form.html', {'form': form}) 
 
 
 def get_posts_content_by_pincode(pincode):
 
-    posts = Post.objects.filter(pincode=pincode)
+    posts = Post.objects.filter(pincode=pincode)    
     all_content = '" "'.join(post.content for post in posts)
-
+    
     return all_content
 
 
@@ -190,7 +223,7 @@ def generate_news(request):
     if request.method == 'POST':
         pincode = request.POST.get('pincode')
 
-        # Remove existing articles for the pincode
+        # Remove existing articles for the pincode 
         Article.objects.filter(pincode=pincode).delete()
 
         comments = get_posts_content_by_pincode(pincode)
@@ -205,7 +238,7 @@ def generate_news(request):
                 pincode=pincode
             )
         return redirect(f'/{pincode}/')
-
+    
 def articles_by_pincode(request, pincode):
     articles = Article.objects.filter(pincode=pincode)
     context = {

@@ -29,3 +29,12 @@ class Post(models.Model):
 
     def __str__(self):
         return str(self.id) # type: ignore
+
+class URLModel(models.Model):
+    path = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    visits = models.IntegerField(default=0)
+    is_article = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.path

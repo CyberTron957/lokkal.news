@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -147,7 +148,7 @@
     <nav class="navbar fixed-top navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <i class="bi bi-newspaper"></i> NewsPortal
+                <img src="{% static 'news_app/images/transparent_header.png' %}" alt="NewsPortal Logo" class="logo" style="height: 40px;">
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">

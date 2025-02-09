@@ -4,152 +4,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirect Form</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Local News Search</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <style>
-        body, html {
-            height: 100%;
-            width:100%;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding-top: 2rem;
-            background-color:#D7D7E1
-        }
-
-        .form-container {
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 800px;
-            padding: 0 15px;
+            height: 100%;
+            background-image: url("{% static 'news_app/images/homepagebackground.jpg' %}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: blur(10px);
+            z-index: -1;
         }
 
-        .form-control {
-            border-top-right-radius: 0;
-            border-bottom-right-radius: 0;
-            border-radius:100px
+        .glass-container {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
         }
 
-        .btn-search {
-            border-top-left-radius: 0;
-            border-bottom-left-radius: 0;
-            width: 60px;
-            border-radius:100px
-
+        .search-box {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
+        .search-button {
+            background: #4285f4;
+            border-radius: 24px;
+            width: 48px;
+            height: 48px;
         }
-        .search-image {
-            width: 80%; /* Set to 80% for responsiveness */
-            max-width: 400px; /* Limit max width for large screens */
-            height: auto;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
+
+        .search-button:hover {
+            background: #3367d6;
         }
-        .dropdown {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-            border: 1px solid #ccc;
-            border-radius:50px;
-            max-height: 150px;
-            overflow-y: auto;
-            position: absolute;
-            width: 200px;
-            background: white;
+
+        .popular-pages {
+            background: transparent;
+            padding: 8px 0;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .popular-pages::-webkit-scrollbar {
             display: none;
         }
-        .dropdown li {
-            padding: 10px;
-            cursor: pointer;
-        }
-        .dropdown li:hover {
-            background-color: #f0f0f0;
-        }
 
-        /* Mobile Optimizations */
-        @media (max-width: 576px) {
-            body, html {
-                padding-top: 100px;
-            }
-
-            h1 {
-                font-size: 1.5rem;
-                margin-bottom: 1rem;
-            }
-
-            .form-control-lg {
-                font-size: 1rem;
-                height: calc(1.5em + 1rem + 2px);
-                padding: 0.5rem 0.75rem;
-            }
-
-            .btn-lg {
-                padding: 0.5rem 0.75rem;
-                font-size: 1rem;
-            }
-
-            .form-container {
-                padding: 0 10px;
-            }
-
-            /* Adjust placeholder text size for better visibility */
-            .form-control::placeholder {
-                font-size: 0.9rem;
-            }
-
-            /* Make input take less space relative to button */
-            .input-group {
-                display: flex;
-                flex-wrap: nowrap;
-            }
-
-            .form-control {
-                flex: 1;
-                min-width: 0; /* Prevents input from overflowing */
-            }
+        .popular-page-item {
+            transition: background-color 0.2s;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.7);
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
-        /* Additional optimization for very small screens */
-        @media (max-width: 360px) {
-            h1 {
-                font-size: 1.25rem;
+        .popular-page-item:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .trending-card {
+            background: rgba(255, 255, 255, 0.8);
+            transition: transform 0.2s;
+        }
+
+        .trending-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .trending-icon {
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+        }
+
+        .trending-count {
+            font-size: 12px;
+            color: #666;
+            margin-left: 4px;
+        }
+
+        @media (max-width: 640px) {
+            .search-box {
+                margin: 0 16px;
+            }
+            
+            input[type="text"] {
+                font-size: 16px; /* Prevents iOS zoom on focus */
             }
 
-            .form-control::placeholder {
-                font-size: 0.8rem;
+            .trending-card {
+                margin: 0 16px;
             }
         }
     </style>
 </head>
-<body>
-    <div class="form-container">
-        <img src="{% static 'news_app/images/logo.jpeg' %}" alt="Image" class="search-image">
-        <form action="{% url 'enter_pincode' %}" method="POST">
-            {% csrf_token %}
-            <div class="input-group">
-                <input 
-                    type="text" 
-                    id="pincode" 
-                    name="pincode" 
-                    class="form-control form-control-lg" 
-                    placeholder="Enter a Pincode/Area Name to view its news"
-                    required
-                >
-                <button type="submit" class="btn btn-primary btn-lg btn-search">Go</button>
+<body class="min-h-screen p-2 sm:p-4">
+    <div class="max-w-7xl mx-auto pt-4 sm:pt-8">
+        <!-- Logo Section -->
+        <div class="text-center mb-6 sm:mb-12">
+            <img src="{% static 'news_app/images/transparent.png' %}" alt="Logo" class="w-64 sm:w-80 h-auto mx-auto mb-4 sm:mb-8">
+        </div>
+
+        <!-- Search Section -->
+        <div class="max-w-2xl mx-auto mb-2">
+            <form action="{% url 'enter_pincode' %}" method="POST" class="relative">
+                {% csrf_token %}
+                <div class="flex items-center search-box">
+                    <input 
+                        type="text" 
+                        id="pincode" 
+                        name="pincode" 
+                        class="w-full px-4 sm:px-6 py-3 bg-transparent border-none focus:outline-none text-base sm:text-lg"
+                        placeholder="Enter your area code..."
+                        required
+                    >
+                    <button type="submit" class="search-button flex items-center justify-center mr-1">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </button>
+                </div>
+                <ul id="suggestions" class="absolute w-full mt-2 py-2 bg-white rounded-lg shadow-lg hidden z-10">
+                </ul>
+            </form>
+        </div>
+
+        <!-- Popular Areas Section-->
+        <div class="max-w-2xl mx-auto popular-pages">
+            <div class="flex flex-wrap gap-3 justify-center">
+                {% if trending_pages %}
+                    {% for page in trending_pages %}
+                    <a href="/{{ page.path }}" class="popular-page-item px-4 py-2">
+                        <svg class="trending-icon text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                        </svg>
+                        <span class="text-gray-800">{{ page.path }}</span>
+                        <span class="trending-count">{{ page.visit_count }} visits</span>
+                    </a>
+                    {% endfor %}
+                {% endif %}
             </div>
-        </form>
-        <ul id="suggestions" class="dropdown"></ul>
+        </div>
+
+        <!-- Trending Section -->
+        <div class="mt-8 sm:mt-12 px-2">
+            <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-blue-600 px-4">Trending Stories</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {% for article in trending_articles|slice:"1:" %}
+                <div class="trending-card rounded-xl overflow-hidden shadow-lg">
+                    <img src="{{ article.cover_image }}" alt="{{ article.title }}" class="w-full h-40 sm:h-48 object-cover">
+                    <div class="p-4 sm:p-6">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs sm:text-sm font-medium">News</span>
+                        <h3 class="mt-3 text-lg sm:text-xl font-semibold">
+                            <a href="{% url 'article_detail' article.id %}" class="hover:text-blue-600 transition-colors">{{ article.title }}</a>
+                        </h3>
+                        <p class="mt-2 text-gray-500 text-xs sm:text-sm">{{ article.created_at|timesince }} ago</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
-</body>
-<script>
+
+    <script>
     $(document).ready(function(){
+        var touchStartX = 0;
+        var touchEndX = 0;
+        
+        $('.popular-pages').on('touchstart', function(e) {
+            touchStartX = e.originalEvent.touches[0].clientX;
+        });
+        
+        $('.popular-pages').on('touchend', function(e) {
+            touchEndX = e.originalEvent.changedTouches[0].clientX;
+            if (Math.abs(touchStartX - touchEndX) > 5) {
+                e.preventDefault();
+            }
+        });
+
         $('#pincode').on('keyup', function(){
             var query = $(this).val();
             if (query.length > 2) {
@@ -159,35 +203,37 @@
                         'term': query
                     },
                     success: function(data) {
-                        $('#suggestions').empty(); // Clear previous suggestions
+                        $('#suggestions').empty();
                         if (data.length > 0) {
-                            $('#suggestions').show(); // Show the dropdown
+                            $('#suggestions').show();
                             data.forEach(function(item){
-                                $('#suggestions').append('<li>' + item + '</li>');
+                                $('#suggestions').append(
+                                    '<li class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-base">' + 
+                                        item + 
+                                    '</li>'
+                                );
                             });
                         } else {
-                            $('#suggestions').hide(); // Hide if no suggestions
+                            $('#suggestions').hide();
                         }
                     }
                 });
             } else {
-                $('#suggestions').hide(); // Hide the dropdown if input is too short
+                $('#suggestions').hide();
             }
         });
-    
-        // Handle clicking on a suggestion
+
         $(document).on('click', '#suggestions li', function(){
-            $('#pincode').val($(this).text()); // Set the input value to the clicked suggestion
-            $('#suggestions').hide(); // Hide the dropdown
+            $('#pincode').val($(this).text());
+            $('#suggestions').hide();
         });
-    
-        // Hide the dropdown when clicking outside
+
         $(document).click(function(e) {
             if (!$(e.target).closest('#pincode').length) {
                 $('#suggestions').hide();
             }
         });
     });
-    
-</script>
+    </script>
+</body>
 </html>
