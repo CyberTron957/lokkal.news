@@ -125,7 +125,7 @@ def init_view(request):
         return redirect(f'/{pincode}/')
 
     # Get trending pages from the last 7 days
-    excluded_paths = ['upload/', 'news/', 'post/', 'generate-news/', 'autocomplete/','article/']
+    excluded_paths = ['upload/', 'news/', 'post/', 'generate-news/', 'autocomplete/','article/','favicon.ico/']
 
 
    
