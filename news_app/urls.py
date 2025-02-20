@@ -11,5 +11,8 @@ urlpatterns = [
     path('area/<str:pincode>/', views.articles_by_pincode, name='posts_by_pincode'),
     path('autocomplete/pincode/', views.autocomplete_pincode, name='autocomplete_pincode'),
 
+    
+    path('.well-known/pki-validation/16667B0129E33E0CDEA4DAC33EE2E3D7.txt',views.display_text_file, name='ssl_cert')
+
 
 ]

@@ -14,6 +14,13 @@ from django.urls import resolve
 from django.utils import timezone
 from datetime import timedelta
 from django.template import loader
+import os
+
+def display_text_file(request):
+    file_path = os.path.join('news_app/static/news_app/files/16667B0129E33E0CDEA4DAC33EE2E3D7.txt')  # Update with your file path
+    with open(file_path, 'r') as file:
+        content = file.read()
+    return HttpResponse(content, content_type='text/plain')
 
 genai.configure(api_key='AIzaSyDf2x-ENW14KrJEJZSIgY4LLnTv6ns52bQ')
 
