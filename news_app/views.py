@@ -3,16 +3,17 @@ from .forms import PostForm
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.files.storage import default_storage
-from .models import Article,Post,questions, URLModel
+from .models import Article, Post, questions, URLModel
 from django.conf import settings
 import google.generativeai as genai
 import requests
 import json
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db.models import Count
 from django.urls import resolve
 from django.utils import timezone
 from datetime import timedelta
+from django.template import loader
 
 genai.configure(api_key='AIzaSyDf2x-ENW14KrJEJZSIgY4LLnTv6ns52bQ')
 
@@ -123,32 +124,30 @@ def init_view(request):
     if request.method == 'POST':
         pincode = request.POST.get('pincode').lower()
         return redirect(f'/area/{pincode}/')
+   
+    pages = (
+    URLModel.objects.filter(
+        created_at__gte=timezone.now() - timedelta(days=7),
+        is_article=False
+    ).order_by('-visits')[:8]  # Remove annotation and use direct visits field
+)
 
-    # Get trending pages from the last 7 days
-    excluded_paths = ['upload/', 'news/', 'post/', 'generate-news/', 'autocomplete/','article/','favicon.ico/']
+    
+    trending_pages = []
+    for page in pages:
+        pincode = page.path.split('/')[1] 
+        # print(f"Checking pincode: {pincode}")  # Verify extracted pincodes
 
+        if Article.objects.filter(pincode__icontains=pincode).exists():
+            trending_pages.append(page)
 
    
-    trending_pages = (
-        URLModel.objects.filter(
-            created_at__gte=timezone.now() - timedelta(days=7),is_article=False
-        ).exclude(
-            path__in=excluded_paths
-        ).annotate(
-            visit_count=Count('visits')
-        ).order_by('-visit_count')[:8]
-    )
-
     trending_articles = URLModel.objects.filter(is_article=True).order_by('-visits')[:10]
-    # Filter out trending articles from trending pages and get their IDs
     trending_article_ids = [int(article.path.split('/')[1]) for article in trending_articles]
-
-    # # Exclude trending articles from trending pages
-    # trending_pages = [page for page in trending_pages if not page.path.startswith('article/')]
-
-    # # Get all articles by their IDs
     trending_articles = Article.objects.filter(id__in=trending_article_ids)
 
+    # print(f"Found {len(trending_pages)} trending pages")
+    # print(f"Found {trending_pages} trending pages")
     context = {
         'trending_pages': trending_pages,
         'trending_articles': trending_articles
@@ -189,25 +188,55 @@ def article_detail(request, article_id):
     }
     return render(request, 'article_detail.html', context)
 
-def post_create(request):
-   
-    if request.method == 'POST':
-        pincode = request.POST.get('pincode').lower()  # Save pincode in lower case
 
+
+
+def post_create(request):
+    if request.method == 'POST':
+        pincode = request.POST.get('pincode', '').lower()
+        content = request.POST.get('content', '').strip()
         form = PostForm(request.POST)
+        
+        # Handle AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if not content or not pincode:
+                return JsonResponse({
+                    'success': False,
+                    'errors': {
+                        'content': not content,
+                        'pincode': not pincode
+                    }
+                })
+            
+            if form.is_valid():
+                post = form.save(commit=False)
+                post.content = content
+                post.save()
+                
+                # loading delay
+                time.sleep(1)  
+                
+                return JsonResponse({
+                    'success': True
+                })
+            
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
+        
+        # Handle regular form submission (fallback)
         if form.is_valid():
             post = form.save(commit=False)
-            post.content = request.POST.get('content')
-
-            #post.author = request.user
+            post.content = content
             post.save()
-            messages.success(request, 'Your post has been made!')
             return redirect(f'/area/{pincode}/')
     else:
         content = request.GET.get('content', '')
         pincode = request.GET.get('pincode', '')
         form = PostForm(initial={'pincode': pincode, 'content': content})
-    return render(request, 'post_form.html', {'form': form}) 
+    
+    return render(request, 'post_form.html', {'form': form})
 
 
 def get_posts_content_by_pincode(pincode):

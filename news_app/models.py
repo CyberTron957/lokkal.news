@@ -14,6 +14,7 @@ class Article(models.Model):
         return self.title
 
 
+
 class questions(models.Model):
     question = models.CharField(max_length=255)
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
@@ -29,7 +30,7 @@ class Post(models.Model):
 
     def __str__(self):
         return str(self.id) # type: ignore
-
+    
 class URLModel(models.Model):
     path = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)

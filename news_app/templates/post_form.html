@@ -18,62 +18,156 @@
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     }
 
-    @media (max-width: 576px) {
-        .card-body {
-            padding: 1rem !important;
-        }
+    .btn-submit {
+        background-color: #0d6efd;
+        color: white;
+        font-weight: bold;
+        padding: 0.75rem 1.5rem;
+        font-size: 1.1rem;
+    }
 
-        .form-label {
-            font-size: 1rem !important;
-            margin-bottom: 0.3rem;
-        }
+    .btn-cancel {
+        background-color: #6c757d;
+        color: white;
+        font-weight: normal;
+    }
 
-        .custom-textarea {
-            min-height: 80px;
-        }
+    .spinner-border {
+        display: none;
+        margin-right: 0.5rem;
+    }
+
+    form.submitting .spinner-border {
+        display: inline-block;
+    }
+
+    form.submitting .btn-submit {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+
+    .invalid-feedback {
+        display: none;
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+
+    .is-invalid ~ .invalid-feedback {
+        display: block;
+    }
+
+    .success-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        z-index: 1050;
+        text-align: center;
+        display: none;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1040;
+        display: none;
+    }
+
+    .success-check {
+        color: #28a745;
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .back-to-area-btn {
+        background-color: #0d6efd;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.375rem;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 1rem;
+    }
+
+    .back-to-area-btn:hover {
+        background-color: #0b5ed7;
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Success Modal -->
+<div class="modal-overlay" id="modalOverlay"></div>
+<div class="success-modal" id="successModal">
+    <div class="success-check">✓</div>
+    <h3>Success!</h3>
+    <p>Your story has been submitted.</p>
+    <button class="back-to-area-btn" id="backToAreaBtn">
+        Back to Your Area
+    </button>
+</div>
+
 <div class="container py-3 py-sm-5">
     <div class="row justify-content-center">
         <div class="col-12 col-sm-10 col-md-8 col-lg-6">
             <div class="card shadow-lg border-0 rounded-lg">
                 <div class="card-body p-3 p-sm-4 p-md-5">
-                    <h2 class="text-center mb-4 fw-bold fs-2">Create New Post</h2>
+                    <h2 class="text-center mb-4 fw-bold fs-2">Submit Your Story</h2>
                     
-                    <form method="POST" class="needs-validation" novalidate>
+                    <form method="POST" class="needs-validation" novalidate id="storyForm">
                         {% csrf_token %}
                         
-                        <!-- Custom Content Textarea -->
+                        <!-- Content Textarea -->
                         <div class="mb-3">
-                            <label for="content" class="form-label">Content</label>
+                            <label for="content" class="form-label">Your Story</label>
                             <textarea 
                                 name="content" 
                                 id="content" 
                                 class="custom-textarea"
                                 required
-                            ></textarea>
+                            >{{ form.content.value|default:'' }}</textarea>
+                            <div class="invalid-feedback">
+                                Please share your story.
+                            </div>
                         </div>
 
-                        <!-- Render remaining form fields -->
-                        {% for field in form %}
-                            <div class="mb-3">
-                                <label class="form-label">
-                                    {% if field.name == 'pincode' %}
-                                        Pincode/Area
-                                    {% else %}
-                                        {{ field.label }}
-                                    {% endif %}
-                                </label>
-                                {{ field }}
+                        <!-- Pincode field -->
+                        <div class="mb-3">
+                            <label for="pincode" class="form-label">Pincode/Area</label>
+                            <input 
+                                type="text" 
+                                name="pincode" 
+                                id="pincode" 
+                                class="form-control"
+                                value="{{ form.pincode.value|default:'' }}"
+                                required
+                            >
+                            <div class="invalid-feedback">
+                                Please enter a valid pincode.
                             </div>
-                        {% endfor %}
+                        </div>
 
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg py-2 py-sm-3 fw-bold">
-                                Create Post
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="button" class="btn btn-cancel flex-grow-1" onclick="window.history.back()">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-submit flex-grow-2">
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                Submit Story
                             </button>
                         </div>
                     </form>
@@ -82,4 +176,68 @@
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('storyForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Reset previous validation states
+    this.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    
+    // Validate required fields
+    let isValid = true;
+    const content = document.getElementById('content');
+    const pincode = document.getElementById('pincode');
+    
+    if (!content.value.trim()) {
+        content.classList.add('is-invalid');
+        isValid = false;
+    }
+    
+    if (!pincode.value.trim()) {
+        pincode.classList.add('is-invalid');
+        isValid = false;
+    }
+    
+    if (isValid) {
+        const formData = new FormData(this);
+        this.classList.add('submitting');
+        
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success modal
+                document.getElementById('modalOverlay').style.display = 'block';
+                document.getElementById('successModal').style.display = 'block';
+                
+                // Setup back to area button
+                document.getElementById('backToAreaBtn').onclick = function() {
+                    window.location.href = `/area/${pincode.value.toLowerCase()}/`;
+                };
+            } else {
+                // Handle errors
+                Object.keys(data.errors).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.classList.add('is-invalid');
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        })
+        .finally(() => {
+            this.classList.remove('submitting');
+        });
+    }
+});
+</script>
 {% endblock content %}
