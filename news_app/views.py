@@ -122,7 +122,7 @@ def upload_and_generate(request):
 def init_view(request):
     if request.method == 'POST':
         pincode = request.POST.get('pincode').lower()
-        return redirect(f'/{pincode}/')
+        return redirect(f'/area/{pincode}/')
 
     # Get trending pages from the last 7 days
     excluded_paths = ['upload/', 'news/', 'post/', 'generate-news/', 'autocomplete/','article/','favicon.ico/']
@@ -202,7 +202,7 @@ def post_create(request):
             #post.author = request.user
             post.save()
             messages.success(request, 'Your post has been made!')
-            return redirect(f'/{pincode}/')
+            return redirect(f'/area/{pincode}/')
     else:
         content = request.GET.get('content', '')
         pincode = request.GET.get('pincode', '')
@@ -237,7 +237,7 @@ def generate_news(request):
                 cover_image=cover_image_url,
                 pincode=pincode
             )
-        return redirect(f'/{pincode}/')
+        return redirect(f'/area/{pincode}/')
     
 def articles_by_pincode(request, pincode):
     articles = Article.objects.filter(pincode=pincode)

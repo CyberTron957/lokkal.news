@@ -1,3 +1,4 @@
+import re
 from .models import URLModel
 
 class PageViewMiddleware:
@@ -12,8 +13,7 @@ class PageViewMiddleware:
             path = request.path.strip('/')
             
             # Exclude certain paths
-            excluded_paths = ['upload/', 'news/', 'post/', 'generate-news/', 'autocomplete/','favicon.ico/']
-            if path and not any(path.startswith(excluded) for excluded in excluded_paths):
+            if path and (path.startswith('area/') or path.startswith('article/')):
                 # Get or create the URL record
                 url_obj, created = URLModel.objects.get_or_create(path=path)
                 # Set is_article to True if path starts with 'article/'
@@ -22,4 +22,4 @@ class PageViewMiddleware:
                 # Increment visits
                 url_obj.visits += 1
                 url_obj.save()
-        return response 
+        return response
