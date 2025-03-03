@@ -259,7 +259,7 @@ def get_posts_content_by_pincode(pincode):
 
 def generate_news(request):
     if request.method == 'POST':
-        pincode = request.POST.get('pincode')
+        pincode = request.POST.get('pincode').lower()
 
         # Remove existing articles for the pincode 
         Article.objects.filter(pincode=pincode).delete()

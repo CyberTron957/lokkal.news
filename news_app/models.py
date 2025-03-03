@@ -4,6 +4,7 @@ from django.db import models
 from django.utils import timezone
 
 
+
 class Article(models.Model):
     title = models.CharField(max_length=255)
     content = models.TextField()
@@ -12,10 +13,12 @@ class Article(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     pincode = models.CharField(max_length=255)
 
+    def save(self, *args, **kwargs):
+        self.pincode = self.pincode.lower()  # Convert to lowercase
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.title
-
-
 
 class questions(models.Model):
     question = models.CharField(max_length=255)
@@ -30,9 +33,13 @@ class Post(models.Model):
     pincode = models.CharField(max_length=255)
     image = models.ImageField(upload_to='post_images/', null=True, blank=True)  
 
+    def save(self, *args, **kwargs):
+        self.pincode = self.pincode.lower()  # Convert to lowercase
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return str(self.id) # type: ignore
-    
+        return str(self.id)  # type: ignore
+
 class URLModel(models.Model):
     path = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
