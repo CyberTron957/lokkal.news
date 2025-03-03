@@ -144,7 +144,7 @@
             <article class="news-card">
                 <img src="{{ article.cover_image }}" alt="{{ article.title }}">
                 <div class="content">
-                    <span class="category">News</span>
+                    <span class="category">{{article.category}}</span>
                     <h3><a href="{% url 'article_detail' article.id %}">{{ article.title }}</a></h3>
                     <p class="timestamp">{{ article.created_at|timesince }} ago</p>
                 </div>
