@@ -1,4 +1,5 @@
 from datetime import date
+from unicodedata import category
 from django.db import models
 from django.utils import timezone
 
@@ -6,6 +7,7 @@ from django.utils import timezone
 class Article(models.Model):
     title = models.CharField(max_length=255)
     content = models.TextField()
+    category = models.TextField(default="news")
     cover_image = models.URLField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     pincode = models.CharField(max_length=255)

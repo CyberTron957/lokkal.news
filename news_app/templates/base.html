@@ -34,6 +34,12 @@
         .navbar-brand {
             font-weight: 700;
             font-size: 1.5rem;
+            pad
+        }
+
+        .navbar-nav .nav-item {
+            display: flex;
+            align-items: center;
         }
 
         .nav-link {
@@ -41,6 +47,7 @@
             padding: 0.5rem 1rem;
             font-weight: 500;
             color: var(--secondary-color);
+            transition: color 0.3s ease;
         }
 
         .nav-link::after {
@@ -60,6 +67,31 @@
 
         .nav-link:hover {
             color: var(--primary-color);
+        }
+
+        .pincode-display {
+            display: flex;
+            align-items: center;
+            color: var(--secondary-color);
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            font-size: 1.1rem;
+            max-width: 40%;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        
+        .pincode-dot {
+            color: var(--primary-color);
+            margin-right: 0.2rem;
+            font-size: 1.3rem;
+        }
+        
+        .pincode-text {
+            max-width: 180px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .main-content {
@@ -124,9 +156,31 @@
         }
 
         /* Custom styles for the mobile menu */
-        .navbar-collapse {
-            background-color: var(--body-bg);
-            padding: 1rem;
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                background-color: white;
+                padding: 1rem;
+                border-radius: 0.5rem;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                margin-top: 1rem;
+            }
+            
+            .nav-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+                margin-top: 1rem;
+                align-items: center;
+            }
+            
+            .nav-actions .nav-item {
+                width: 100%;
+            }
+            
+            .nav-actions .btn-refresh {
+                width: 100%;
+                justify-content: center;
+            }
         }
 
         .navbar-toggler {
@@ -141,38 +195,74 @@
             outline: none;
             box-shadow: none;
         }
+        @media (max-width: 576px) {
+            .pincode-text {
+                max-width: 100px;
+            }
+            .navbar-brand {
+                margin-right: 1rem; /* Reduce space between logo and pincode */
+            }
+            .pincode-display {
+                max-width: 45%;
+                padding: 0.5rem;
+                margin-left: 0;
+            }
+        }
+       
+        
+        @media (max-width: 400px) {
+            .pincode-text {
+                max-width: 80px;
+            }
+            .pincode-display {
+                max-width: 15%;
+                font-size: 1rem;
+
+            }
+        }
+
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <nav class="navbar fixed-top navbar-expand-lg">
         <div class="container">
+            <!-- Logo -->
             <a class="navbar-brand" href="/">
-                <img src="{% static 'news_app/images/transparent_header.png' %}" alt="NewsPortal Logo" class="logo" style="height: 40px;">
+                <img src="{% static 'news_app/images/transparent_header.webp' %}" alt="NewsPortal Logo" class="logo" style="height: 40px;">
             </a>
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                <i class="bi bi-list"></i> Menu
+            {% if pincode %}
+            <!-- Pincode Display - Only visible if pincode exists -->
+            <div class="pincode-display d-flex align-items-center order-lg-2 me-auto ms-2">
+                <i class="bi bi-geo-alt-fill pincode-dot"></i>
+                <span>{{ pincode }}</span>
+            </div>
+            {% endif %}
+            <!-- Mobile Toggle Button -->
+            <button class="navbar-toggler order-lg-4" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <i class="bi bi-list"></i>
             </button>
 
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+            <!-- Nav Items -->
+            <div class="collapse navbar-collapse order-lg-3" id="navbarContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 nav-actions">
                     <li class="nav-item">
-                        <form id="pincodeForm" action="{% url 'generate_news' %}" method="post" class="d-inline-block">
+                        <form id="pincodeForm" action="{% url 'generate_news' %}" method="post" class="d-inline-block w-100">
                             {% csrf_token %}
                             <input type="hidden" name="pincode" value="{{ pincode }}">
-                            <button type="submit" class="btn-refresh">
+                            <button type="submit" class="btn-refresh w-100">
                                 <i class="bi bi-arrow-clockwise"></i> Refresh News
                             </button>
                         </form>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url 'post-create' %}" class="nav-link">
+                        <a href="{% url 'post-create' %}" class="nav-link text-center">
                             <i class="bi bi-plus-circle"></i> Create Post
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url 'news_view' %}" class="nav-link">
+                        <a href="{% url 'news_view' %}" class="nav-link text-center">
                             <i class="bi bi-grid"></i> All News
                         </a>
                     </li>
@@ -185,12 +275,7 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="footer">
-        <div class="container text-center text-secondary">
-            <p class="mb-0">&copy; {% now "Y" %} NewsPortal. All rights reserved.</p>
-        </div>
-    </footer>
-
+    
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-spinner"></div>

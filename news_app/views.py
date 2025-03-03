@@ -1,4 +1,5 @@
 import time
+from unicodedata import category
 from .forms import PostForm
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
@@ -28,7 +29,8 @@ def run_gemini(text):
                         "type": "object",
                         "properties": {
                             "title": {"type": "string"},
-                            "content": {"type": "string"}
+                            "content": {"type": "string"},
+                            "category": {"type": "string"}
                         },
                         "required": ["title", "content"]
                     }
@@ -263,6 +265,7 @@ def generate_news(request):
             Article.objects.create(
                 title=article_data['title'],
                 content=article_data['content'],
+                category=article_data['category'],
                 cover_image=cover_image_url,
                 pincode=pincode
             )
