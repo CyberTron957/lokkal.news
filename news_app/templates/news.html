@@ -5,9 +5,6 @@
 {% block extra_css %}
 <style>
     .featured-news {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 20px;
         margin-bottom: 30px;
     }
 
@@ -47,9 +44,11 @@
         text-decoration: underline;
     }
 
+    /* Updated news grid styles */
     .news-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(12, 1fr);
+        grid-auto-rows: minmax(100px, auto);
         gap: 20px;
     }
 
@@ -59,6 +58,23 @@
         overflow: hidden;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         transition: transform 0.2s;
+    }
+
+    /* Different card sizes */
+    .news-card.wide {
+        grid-column: span 8;
+    }
+
+    .news-card.medium {
+        grid-column: span 6;
+    }
+
+    .news-card.narrow {
+        grid-column: span 4;
+    }
+
+    .news-card.tall {
+        grid-row: span 2;
     }
 
     .news-card:hover {
@@ -71,6 +87,14 @@
         object-fit: cover;
     }
 
+    .news-card.tall img {
+        height: 350px;
+    }
+
+    .news-card.wide img {
+        height: 250px;
+    }
+
     .news-card .content {
         padding: 15px;
     }
@@ -79,6 +103,10 @@
         font-size: 1.1rem;
         margin-bottom: 10px;
         color: #333;
+    }
+
+    .news-card.wide h3 {
+        font-size: 1.5rem;
     }
 
     .news-card h3 a {
@@ -105,9 +133,31 @@
         font-size: 0.9rem;
     }
 
+    @media (max-width: 992px) {
+        .news-card.wide,
+        .news-card.medium,
+        .news-card.narrow {
+            grid-column: span 6;
+        }
+    }
+
     @media (max-width: 768px) {
         .news-grid {
             grid-template-columns: 1fr;
+        }
+
+        .news-card.wide,
+        .news-card.medium,
+        .news-card.narrow {
+            grid-column: span 12;
+        }
+
+        .news-card.tall {
+            grid-row: span 1;
+        }
+        
+        .news-card.tall img {
+            height: 200px;
         }
 
         .featured-article {
@@ -138,17 +188,34 @@
             {% endwith %}
         </section>
         
-        <!-- News Grid Section -->
+        <!-- News Grid Section with randomized card sizes -->
         <section class="news-grid">
             {% for article in articles|slice:"1:" %}
-            <article class="news-card">
-                <img src="{{ article.cover_image }}" alt="{{ article.title }}">
-                <div class="content">
-                    <span class="category">{{article.category}}</span>
-                    <h3><a href="{% url 'article_detail' article.id %}">{{ article.title }}</a></h3>
-                    <p class="timestamp">{{ article.created_at|timesince }} ago</p>
-                </div>
-            </article>
+                {% with forloop.counter|divisibleby:5 as is_div_by_5 %}
+                {% with forloop.counter|divisibleby:3 as is_div_by_3 %}
+                {% with forloop.counter|divisibleby:2 as is_div_by_2 %}
+                
+                {% if is_div_by_5 %}
+                    <article class="news-card wide tall">
+                {% elif is_div_by_3 %}
+                    <article class="news-card medium">
+                {% elif is_div_by_2 %}
+                    <article class="news-card narrow tall">
+                {% else %}
+                    <article class="news-card narrow">
+                {% endif %}
+                
+                    <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                    <div class="content">
+                        <span class="category">{{article.category}}</span>
+                        <h3><a href="{% url 'article_detail' article.id %}">{{ article.title }}</a></h3>
+                        <p class="timestamp">{{ article.created_at|timesince }} ago</p>
+                    </div>
+                </article>
+                
+                {% endwith %}
+                {% endwith %}
+                {% endwith %}
             {% endfor %}
         </section>
     {% else %}

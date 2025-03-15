@@ -145,19 +145,19 @@
                             </div>
                         </div>
 
-                        <!-- Pincode field -->
+                        <!-- area field -->
                         <div class="mb-3">
-                            <label for="pincode" class="form-label">Pincode/Area</label>
+                            <label for="area" class="form-label">Pincode/Area</label>
                             <input 
                                 type="text" 
-                                name="pincode" 
-                                id="pincode" 
+                                name="area" 
+                                id="area" 
                                 class="form-control"
-                                value="{{ form.pincode.value|default:'' }}"
+                                value="{{ form.area.value|default:'' }}"
                                 required
                             >
                             <div class="invalid-feedback">
-                                Please enter a valid pincode.
+                                Please enter a valid area.
                             </div>
                         </div>
 
@@ -187,15 +187,15 @@ document.getElementById('storyForm').addEventListener('submit', function(e) {
     // Validate required fields
     let isValid = true;
     const content = document.getElementById('content');
-    const pincode = document.getElementById('pincode');
+    const area = document.getElementById('area');
     
     if (!content.value.trim()) {
         content.classList.add('is-invalid');
         isValid = false;
     }
     
-    if (!pincode.value.trim()) {
-        pincode.classList.add('is-invalid');
+    if (!area.value.trim()) {
+        area.classList.add('is-invalid');
         isValid = false;
     }
     
@@ -219,7 +219,7 @@ document.getElementById('storyForm').addEventListener('submit', function(e) {
                 
                 // Setup back to area button
                 document.getElementById('backToAreaBtn').onclick = function() {
-                    window.location.href = `/area/${pincode.value.toLowerCase()}/`;
+                    window.location.href = `/area/${area.value.toLowerCase()}/`;
                 };
             } else {
                 // Handle errors

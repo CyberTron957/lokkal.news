@@ -4,7 +4,7 @@ from .forms import PostForm
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.files.storage import default_storage
-from .models import Article, Post, questions, URLModel
+from .models import Article, Post, questions, URLModel, Area
 from django.conf import settings
 import google.generativeai as genai
 import requests
@@ -128,48 +128,48 @@ def upload_and_generate(request):
 
     return render(request, 'upload.html')
 
-
 def init_view(request):
     if request.method == 'POST':
-        pincode = request.POST.get('pincode').lower()
-        return redirect(f'/area/{pincode}/')
+        area_name = request.POST.get('area').lower()
+        area, _ = Area.objects.get_or_create(name=area_name)
+        return redirect(f'/area/{area_name}/')
    
-    pages = (
-    URLModel.objects.filter(
-        created_at__gte=timezone.now() - timedelta(days=7),
-        is_article=False
-    ).order_by('-visits')[:8]  # Remove annotation and use direct visits field
-)
-
+    # Get area pages with the most visits
+    area_pages = URLModel.objects.filter(
+        path__startswith='area/',  # Focus on area pages only
+        area__isnull=False  # Make sure area is connected
+    ).order_by('-visits')[:8]  # Get the top 8 most visited
     
     trending_pages = []
-    for page in pages:
-        pincode = page.path.split('/')[1] 
-        # print(f"Checking pincode: {pincode}")  # Verify extracted pincodes
-
-        if Article.objects.filter(pincode__icontains=pincode).exists():
+    for page in area_pages:
+        # Extract area name from the path
+        area_name = page.path.split('/')[1] if len(page.path.split('/')) > 1 else None
+        if area_name:
+            # Set display name for the template
+            page.display_name = area_name.title()  # Capitalize for nicer display
             trending_pages.append(page)
-
-   
+    
+    # Debug info
+    print(f"Found {len(trending_pages)} trending areas")
+    for p in trending_pages:
+        print(f"Area: {p.display_name}, Path: {p.path}, Visits: {p.visits}")
+    
+    # Get trending articles
     trending_articles = URLModel.objects.filter(is_article=True).order_by('-visits')[:10]
     trending_article_ids = [int(article.path.split('/')[1]) for article in trending_articles]
     trending_articles = Article.objects.filter(id__in=trending_article_ids)
 
-    # print(f"Found {len(trending_pages)} trending pages")
-    # print(f"Found {trending_pages} trending pages")
     context = {
         'trending_pages': trending_pages,
         'trending_articles': trending_articles
     }
-    
     return render(request, 'init.html', context)
 
-
-def autocomplete_pincode(request):
+def autocomplete_area(request):
     if 'term' in request.GET:
-        qs = Article.objects.filter(pincode__icontains=request.GET.get('term'))
-        pincode = list(set(pin.capitalize() for pin in qs.values_list('pincode', flat=True)))
-        return JsonResponse(pincode, safe=False)
+        qs = Area.objects.filter(name__icontains=request.GET.get('term'))
+        area_names = list(set(area_name.capitalize() for area_name in qs.values_list('name', flat=True)))
+        return JsonResponse(area_names, safe=False)
     return JsonResponse([], safe=False)
 
 def news_view(request):
@@ -202,86 +202,107 @@ def article_detail(request, article_id):
 
 def post_create(request):
     if request.method == 'POST':
-        pincode = request.POST.get('pincode', '').lower()
+        area_name = request.POST.get('area', '').lower()
         content = request.POST.get('content', '').strip()
         form = PostForm(request.POST)
         
-        # Handle AJAX request
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            if not content or not pincode:
+            if not content or not area_name:
                 return JsonResponse({
                     'success': False,
                     'errors': {
                         'content': not content,
-                        'pincode': not pincode
+                        'area': not area_name
                     }
                 })
             
             if form.is_valid():
                 post = form.save(commit=False)
                 post.content = content
+                area, _ = Area.objects.get_or_create(name=area_name)
                 post.save()
+                area.posts.add(post)
                 
-                # loading delay
-                time.sleep(1)  
-                
-                return JsonResponse({
-                    'success': True
-                })
+                time.sleep(1)
+                return JsonResponse({'success': True})
             
-            return JsonResponse({
-                'success': False,
-                'errors': form.errors
-            })
+            return JsonResponse({'success': False, 'errors': form.errors})
         
-        # Handle regular form submission (fallback)
         if form.is_valid():
             post = form.save(commit=False)
             post.content = content
+            area, _ = Area.objects.get_or_create(name=area_name)
             post.save()
-            return redirect(f'/area/{pincode}/')
+            area.posts.add(post)
+            return redirect(f'/area/{area_name}/')
     else:
         content = request.GET.get('content', '')
-        pincode = request.GET.get('pincode', '')
-        form = PostForm(initial={'pincode': pincode, 'content': content})
+        area = request.GET.get('area', '')
+        form = PostForm(initial={'area': area, 'content': content})
     
     return render(request, 'post_form.html', {'form': form})
 
 
-def get_posts_content_by_pincode(pincode):
-
-    posts = Post.objects.filter(pincode=pincode)    
+def get_posts_content_by_area(area_name):
+    area = Area.objects.get(name=area_name)
+    posts = area.posts.all()
     all_content = '" "'.join(post.content for post in posts)
-    
     return all_content
 
 
 
 def generate_news(request):
     if request.method == 'POST':
-        pincode = request.POST.get('pincode').lower()
-
-        # Remove existing articles for the pincode 
-        Article.objects.filter(pincode=pincode).delete()
-
-        comments = get_posts_content_by_pincode(pincode)
+        area_name = request.POST.get('area').lower()
+        area, _ = Area.objects.get_or_create(name=area_name)
+        
+        print(f"Generating news for area: {area_name}")
+        
+        # Get existing articles for this area
+        existing_articles = area.articles.all()
+        if existing_articles.exists():
+            print(f"Removing {existing_articles.count()} existing articles")
+            area.articles.clear()
+        
+        comments = get_posts_content_by_area(area_name)
         articles = run_gemini(comments)
-
+        
+        print(f"Generated {len(articles)} new articles")
+        
         for article_data in articles:
             cover_image_url = fetch_cover_image(article_data['title'] or article_data['content'])
-            Article.objects.create(
+            article = Article.objects.create(
                 title=article_data['title'],
                 content=article_data['content'],
-                category=article_data['category'],
-                cover_image=cover_image_url,
-                pincode=pincode
+                category=article_data.get('category', 'news'),
+                cover_image=cover_image_url
             )
-        return redirect(f'/area/{pincode}/')
+            # Explicitly add the article to the area
+            area.articles.add(article)
+            print(f"Created and associated article: {article.title}")
+        
+        # Verify the association
+        print(f"Total articles now associated with {area_name}: {area.articles.count()}")
+        
+        return redirect(f'/area/{area_name}/')
     
-def articles_by_pincode(request, pincode):
-    articles = Article.objects.filter(pincode=pincode)
+def articles_by_area(request, area_name):
+    area = get_object_or_404(Area, name=area_name.lower())
+    
+    # Get all articles
+    all_articles = Article.objects.all()
+    print(f"Total articles in database: {all_articles.count()}")
+    
+    # Get articles for this area
+    articles = area.articles.all().order_by('-created_at')
+    print(f"Area: {area}")
+    print(f"Number of articles for this area: {articles.count()}")
+    
+    if articles.exists():
+        print(f"First article title: {articles.first().title}")
+    
     context = {
-        'pincode': pincode,
+        'area': area,
         'articles': articles,
     }
     return render(request, 'news.html', context)

@@ -4,7 +4,7 @@ from .models import Post
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['pincode', 'image']  
+        fields = ['area', 'image']  
         widgets = {
-            'pincode': forms.TextInput(attrs={'required': 'required'}),
+            'area': forms.TextInput(attrs={'required': 'required'}),
         }

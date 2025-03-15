@@ -118,13 +118,13 @@
 
         <!-- Search Section -->
         <div class="max-w-2xl mx-auto mb-2">
-            <form action="{% url 'enter_pincode' %}" method="POST" class="relative">
+            <form action="{% url 'enter_area' %}" method="POST" class="relative">
                 {% csrf_token %}
                 <div class="flex items-center search-box">
                     <input 
                         type="text" 
-                        id="pincode" 
-                        name="pincode" 
+                        id="area" 
+                        name="area" 
                         class="w-full px-4 sm:px-6 py-3 bg-transparent border-none focus:outline-none text-base sm:text-lg rounded-l-full"
                         placeholder="Enter your area code..."
                         required
@@ -145,16 +145,16 @@
             <div class="flex flex-wrap gap-3 justify-center">
                 {% if trending_pages %}
                     {% for page in trending_pages %}
-                        {% if page.path|slice:":5" %}
+                    {% if page.display_name %}
                             <a href="/{{ page.path }}" class="popular-page-item px-4 py-2">
                                 <svg class="trending-icon text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                          d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                                 </svg>
-                                <span class="text-gray-800">{{ page.path|slice:"5:" }}</span>
+                                <span class="text-gray-800">{{ page.display_name }}</span>
                                 <span class="trending-count">{{ page.visits }} visits</span>
                             </a>
-                        {% endif %}
+                    {% endif %}
                     {% endfor %}
                 {% endif %}
             </div>
@@ -197,11 +197,11 @@ window.onload = function() {
             }
         });
 
-        $('#pincode').on('keyup', function(){
+        $('#area').on('keyup', function(){
             var query = $(this).val();
             if (query.length > 2) {
                 $.ajax({
-                    url: 'autocomplete/pincode/',
+                    url: 'autocomplete/area/',
                     data: {
                         'term': query
                     },
@@ -227,12 +227,12 @@ window.onload = function() {
         });
 
         $(document).on('click', '#suggestions li', function(){
-            $('#pincode').val($(this).text());
+            $('#area').val($(this).text());
             $('#suggestions').hide();
         });
 
         $(document).click(function(e) {
-            if (!$(e.target).closest('#pincode').length) {
+            if (!$(e.target).closest('#area').length) {
                 $('#suggestions').hide();
             }
         });
