@@ -2,6 +2,7 @@ from datetime import date
 from unicodedata import category
 from django.db import models
 from django.utils import timezone
+from django.utils.text import slugify
 
 
 
@@ -11,6 +12,12 @@ class Article(models.Model):
     category = models.TextField(default="news")
     cover_image = models.URLField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -42,7 +49,6 @@ class URLModel(models.Model):
     path = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     visits = models.IntegerField(default=0)
-    is_article = models.BooleanField(default=False)
     article = models.ForeignKey(Article, on_delete=models.SET_NULL, null=True, blank=True)
     area = models.ForeignKey('Area', on_delete=models.SET_NULL, null=True, blank=True)
 

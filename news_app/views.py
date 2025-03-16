@@ -132,39 +132,42 @@ def init_view(request):
     if request.method == 'POST':
         area_name = request.POST.get('area').lower()
         area, _ = Area.objects.get_or_create(name=area_name)
-        return redirect(f'/area/{area_name}/')
+        return redirect(f'/{area_name}/')
    
-    # Get area pages with the most visits
-    area_pages = URLModel.objects.filter(
-        path__startswith='area/',  # Focus on area pages only
-        area__isnull=False  # Make sure area is connected
-    ).order_by('-visits')[:8]  # Get the top 8 most visited
+    # Get the most visited area pages
+    area_urls = URLModel.objects.filter(
+        area__isnull=False,  # Only get URLs associated with an area
+        article__isnull=True  # Exclude article URLs
+    ).order_by('-visits')[:8]
     
     trending_pages = []
-    for page in area_pages:
-        # Extract area name from the path
-        area_name = page.path.split('/')[1] if len(page.path.split('/')) > 1 else None
-        if area_name:
-            # Set display name for the template
-            page.display_name = area_name.title()  # Capitalize for nicer display
-            trending_pages.append(page)
+    for url in area_urls:
+        if url.area:
+            # Create display info for the template
+            url.display_name = url.area.name.title()  # Capitalize area name
+            trending_pages.append(url)
     
-    # Debug info
+    # Debug print
     print(f"Found {len(trending_pages)} trending areas")
     for p in trending_pages:
         print(f"Area: {p.display_name}, Path: {p.path}, Visits: {p.visits}")
     
-    # Get trending articles
-    trending_articles = URLModel.objects.filter(is_article=True).order_by('-visits')[:10]
-    trending_article_ids = [int(article.path.split('/')[1]) for article in trending_articles]
-    trending_articles = Article.objects.filter(id__in=trending_article_ids)
-
+    # Get trending articles - filter by article being not null
+    trending_url_models = URLModel.objects.filter(
+        article__isnull=False  # Must have an associated article
+    ).order_by('-visits')[:10]
+    
+    # Extract the article objects directly
+    trending_articles = []
+    for url_model in trending_url_models:
+        if url_model.article and url_model.article not in trending_articles:
+            trending_articles.append(url_model.article)
+    
     context = {
         'trending_pages': trending_pages,
         'trending_articles': trending_articles
     }
     return render(request, 'init.html', context)
-
 def autocomplete_area(request):
     if 'term' in request.GET:
         qs = Area.objects.filter(name__icontains=request.GET.get('term'))
@@ -176,12 +179,37 @@ def news_view(request):
     articles = Article.objects.all()
     return render(request, 'news.html', {'articles': articles})
 
+def article_detail_by_slug(request, area_name, article_slug):
+    area = get_object_or_404(Area, name=area_name.lower())
+    article = get_object_or_404(Article, slug=article_slug, areas=area)
+    
+    # Check if questions already exist for the article
+    if not questions.objects.filter(article=article).exists():
+        questions_data = generate_article_qs(article)
+        for question in questions_data:
+            questions.objects.create(
+                question=question,
+                article=article
+            )
 
+    context = {
+        'article': article,
+        'area': area,
+        'questions': questions.objects.filter(article=article),
+    }
+    return render(request, 'article_detail.html', context)
+
+# Keep the old view for backwards compatibility if needed
 def article_detail(request, article_id):
     article = get_object_or_404(Article, pk=article_id)
-    previous_url = request.META.get('HTTP_REFERER', 'news_view')
+    # Find the first area associated with this article
+    area = article.areas.first()
     
-        # Check if questions already exist for the article
+    if area:
+        # Redirect to the new URL pattern
+        return redirect('article_detail_by_slug', area_name=area.name, article_slug=article.slug)
+    
+    # If no area is found, fall back to the original view
     if not questions.objects.filter(article=article).exists():
         questions_data = generate_article_qs(article)
         for question in questions_data:
@@ -193,11 +221,8 @@ def article_detail(request, article_id):
     context = {
         'article': article,
         'questions': questions.objects.filter(article=article),
-        'previous_url': previous_url
     }
     return render(request, 'article_detail.html', context)
-
-
 
 
 def post_create(request):
@@ -234,7 +259,7 @@ def post_create(request):
             area, _ = Area.objects.get_or_create(name=area_name)
             post.save()
             area.posts.add(post)
-            return redirect(f'/area/{area_name}/')
+            return redirect(f'/{area_name}/')
     else:
         content = request.GET.get('content', '')
         area = request.GET.get('area', '')
@@ -284,22 +309,13 @@ def generate_news(request):
         # Verify the association
         print(f"Total articles now associated with {area_name}: {area.articles.count()}")
         
-        return redirect(f'/area/{area_name}/')
+        return redirect(f'/{area_name}/')
     
 def articles_by_area(request, area_name):
     area = get_object_or_404(Area, name=area_name.lower())
     
-    # Get all articles
-    all_articles = Article.objects.all()
-    print(f"Total articles in database: {all_articles.count()}")
-    
     # Get articles for this area
     articles = area.articles.all().order_by('-created_at')
-    print(f"Area: {area}")
-    print(f"Number of articles for this area: {articles.count()}")
-    
-    if articles.exists():
-        print(f"First article title: {articles.first().title}")
     
     context = {
         'area': area,
