@@ -1,7 +1,5 @@
 {% extends "base.html" %}
 
-{% block title %}News Portal - Latest News{% endblock %}
-
 {% block extra_css %}
 <style>
     .featured-news {
@@ -47,8 +45,7 @@
     /* Updated news grid styles */
     .news-grid {
         display: grid;
-        grid-template-columns: repeat(12, 1fr);
-        grid-auto-rows: minmax(100px, auto);
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         gap: 20px;
     }
 
@@ -190,31 +187,14 @@
         <!-- News Grid Section with randomized card sizes -->
         <section class="news-grid">
             {% for article in articles|slice:"1:" %}
-                {% with forloop.counter|divisibleby:5 as is_div_by_5 %}
-                {% with forloop.counter|divisibleby:3 as is_div_by_3 %}
-                {% with forloop.counter|divisibleby:2 as is_div_by_2 %}
-                
-                {% if is_div_by_5 %}
-                    <article class="news-card wide tall">
-                {% elif is_div_by_3 %}
-                    <article class="news-card medium">
-                {% elif is_div_by_2 %}
-                    <article class="news-card narrow tall">
-                {% else %}
-                    <article class="news-card narrow">
-                {% endif %}
-                
+                <article class="news-card">
                     <img src="{{ article.cover_image }}" alt="{{ article.title }}">
                     <div class="content">
-                        <span class="category">{{article.category}}</span>
+                        <span class="category">{{ article.category }}</span>
                         <h3><a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">{{ article.title }}</a></h3>
                         <p class="timestamp">{{ article.created_at|timesince }} ago</p>
                     </div>
                 </article>
-                
-                {% endwith %}
-                {% endwith %}
-                {% endwith %}
             {% endfor %}
         </section>
     {% else %}

@@ -3,6 +3,7 @@ from unicodedata import category
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
+import hashlib
 
 
 
@@ -16,7 +17,8 @@ class Article(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)
+            unique_hash = hashlib.sha256(self.title.encode()).hexdigest()  # Generate a unique hash
+            self.slug = f"{slugify(self.title)}-{unique_hash}"  # Append the hash to the slug
         super().save(*args, **kwargs)
 
     def __str__(self):

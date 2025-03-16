@@ -17,11 +17,6 @@ from datetime import timedelta
 from django.template import loader
 import os
 
-def display_text_file(request):
-    file_path = os.path.join('news_app/static/news_app/files/16667B0129E33E0CDEA4DAC33EE2E3D7.txt')  # Update with your file path
-    with open(file_path, 'r') as file:
-        content = file.read()
-    return HttpResponse(content, content_type='text/plain')
 
 genai.configure(api_key='AIzaSyDf2x-ENW14KrJEJZSIgY4LLnTv6ns52bQ')
 
@@ -176,9 +171,13 @@ def autocomplete_area(request):
         return JsonResponse(area_names, safe=False)
     return JsonResponse([], safe=False)
 
-def news_view(request):
-    articles = Article.objects.all()
-    return render(request, 'news.html', {'articles': articles})
+def all_articles_view(request):
+    articles = Article.objects.all().order_by('-created_at')
+    
+    context = {
+        'articles': articles,
+    }
+    return render(request, 'all_articles.html', context)
 
 def article_detail_by_slug(request, area_name, article_slug):
     area = get_object_or_404(Area, name=area_name.lower())
@@ -323,3 +322,13 @@ def articles_by_area(request, area_name):
         'articles': articles,
     }
     return render(request, 'news.html', context)
+
+
+def article_detail_view(request, article_id):
+    # Retrieve the article by its ID or return a 404 error if not found
+    article = get_object_or_404(Article, id=article_id)
+    
+    context = {
+        'article': article,
+    }
+    return render(request, 'article_detail.html', context)

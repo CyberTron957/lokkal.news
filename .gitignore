@@ -1,3 +1,18 @@
-db.sqlite3
-news_app/__pycache__/
+# Database files
+*.sqlite3
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Django migrations
+news_app/migrations/
+
+# VSCode settings
 .vscode/
+
+# Static files
+news_app/static/
+
+# Environment variables
+.env
