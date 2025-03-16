@@ -131,6 +131,11 @@
     </aside>
     <article class="article-container">
         <header class="article-header">
+            {% if area %}
+            <div class="breadcrumb">
+                <a href="{% url 'articles_by_area' area_name=area.name %}">← Back to {{ area.name|title }}</a>
+            </div>
+            {% endif %}
             <h1>{{ article.title }}</h1>
         </header>
         {% if article.cover_image %}
@@ -145,12 +150,17 @@
     <div class="questions-container">
         <ul class="questions-list">
             {% for question in questions %}
-                <li class="question-pill"><a href="{% url 'post-create' %}?area={{ article.area }}&content={{ question }}" style="color: inherit; text-decoration: none;">{{ question }}</a></li>
+                <li class="question-pill">
+                    <a href="{% url 'post-create' %}?area={{ area.name }}&content={{ question }}" style="color: inherit; text-decoration: none;">
+                        {{ question }}
+                    </a>
+                </li>
             {% empty %}
                 <li class="question-pill">No questions available for this article.</li>
             {% endfor %}
         </ul>
     </div>
+
     <style>
         .question-pill {
             display: inline-block;

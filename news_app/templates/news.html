@@ -170,7 +170,6 @@
     }
 </style>
 {% endblock %}
-
 {% block content %}
 <div class="container">
     {% if articles %}
@@ -181,7 +180,7 @@
                     <img src="{{ featured_article.cover_image }}" alt="Featured News">
                     <div class="content">
                         <span class="category">Featured</span>
-                        <h2><a href="{% url 'article_detail' featured_article.id %}">{{ featured_article.title }}</a></h2>
+                        <h2><a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=featured_article.slug %}">{{ featured_article.title }}</a></h2>
                         <p class="timestamp">{{ featured_article.created_at|timesince }} ago</p>
                     </div>
                 </article>
@@ -208,7 +207,7 @@
                     <img src="{{ article.cover_image }}" alt="{{ article.title }}">
                     <div class="content">
                         <span class="category">{{article.category}}</span>
-                        <h3><a href="{% url 'article_detail' article.id %}">{{ article.title }}</a></h3>
+                        <h3><a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">{{ article.title }}</a></h3>
                         <p class="timestamp">{{ article.created_at|timesince }} ago</p>
                     </div>
                 </article>
