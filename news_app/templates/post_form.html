@@ -219,7 +219,7 @@ document.getElementById('storyForm').addEventListener('submit', function(e) {
                 
                 // Setup back to area button
                 document.getElementById('backToAreaBtn').onclick = function() {
-                    window.location.href = `/area/${area.value.toLowerCase()}/`;
+                    window.location.href = `/${area.value}/`;
                 };
             } else {
                 // Handle errors
