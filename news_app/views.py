@@ -168,6 +168,7 @@ def init_view(request):
         'trending_articles': trending_articles
     }
     return render(request, 'init.html', context)
+
 def autocomplete_area(request):
     if 'term' in request.GET:
         qs = Area.objects.filter(name__icontains=request.GET.get('term'))
