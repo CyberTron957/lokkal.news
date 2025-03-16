@@ -1,3 +1,4 @@
+# Run this function after applying migrations
 from django.utils.text import slugify
 from news_app.models import Article
 
@@ -7,5 +8,4 @@ def generate_slugs_for_articles():
         article.slug = slugify(article.title)
         article.save()
 
-# Run this function after applying migrations
 

@@ -19,14 +19,16 @@ class PageViewMiddleware:
                     area_name = parts[0].lower()
                     try:
                         area = Area.objects.get(name=area_name)
-                        url_obj, created = URLModel.objects.get_or_create(path=path)
-                        url_obj.area = area
-                        url_obj.article = None  # Ensure it's not an article
-                        url_obj.visits += 1
-                        url_obj.save()
+                        # Check if at least one article exists in the area
+                        if area.articles.exists():
+                            # Only create URLModel if area exists
+                            url_obj, created = URLModel.objects.get_or_create(path=path)
+                            url_obj.area = area
+                            url_obj.article = None  # Ensure it's not an article
+                            url_obj.visits += 1
+                            url_obj.save()
                     except Area.DoesNotExist:
                         pass
-                
                 # Handle area/article-slug visits (like /sanfrancisco/local-news-title)
                 elif len(parts) == 2:
                     area_name = parts[0].lower()
