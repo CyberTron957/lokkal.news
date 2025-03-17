@@ -33,6 +33,7 @@
         max-width: 800px;
         padding: 20px;
         margin-right: 20px;
+        position: relative;
     }
     .article-header {
         margin-bottom: 2rem;
@@ -85,42 +86,113 @@
         box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
     }
 
+    /* Social Share Icons */
+    .social-share-container {
+        position: fixed;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        z-index: 100;
+    }
+    .social-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        color: white;
+    }
+    .social-icon:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .whatsapp-icon { background-color: #25D366; }
+    .twitter-icon { background-color:rgb(18, 18, 18); }
+    .facebook-icon { background-color: #4267B2; }
+
     /* Mobile Responsive Styles */
     @media screen and (max-width: 768px) {
         .page-container {
             flex-direction: column;
             gap: 20px;
         }
-
         .ad-container {
             display: none; /* Hide ad containers on mobile */
         }
-
         .article-container {
             max-width: 100%;
             padding: 10px; /* Reduced padding for mobile */
             margin-right: 0;
         }
-
         h1 {
             font-size: 1.8rem; /* Smaller heading for mobile */
         }
-
         .article-content {
             font-size: 1rem;
             line-height: 1.6;
         }
-
         .cover-image-container {
             margin: 0;
             border-radius: 8px;
         }
+        .social-share-container {
+            position: static;
+            flex-direction: row;
+            justify-content: center;
+            margin: 15px 0;
+            transform: none;
+        }
+    }
+
+    .question-pill {
+        display: inline-block;
+        padding: 10px;
+        margin: 5px;
+        opacity: 0;
+        transform: translateY(20px);
+        border: 5px;
+        border-radius: 50px;
+        background-image: linear-gradient(to right, rgba(128, 128, 255, 0.8), rgba(241, 94, 68, 0.8));
+        padding: 10px 15px;
+        color: rgb(255, 255, 255);
+        transition: opacity 1s ease, transform 1s ease;
+    }
+    .question-pill.visible {
+        opacity: 1;
+        transform: translateY(0);
     }
 </style>
 {% endblock %}
 {% block content %}
+<div id="google_translate_element" style="display: none;"></div>
+
+<!-- Social Share Icons -->
+<div class="social-share-container" aria-label="Share this article">
+    <div class="social-icon whatsapp-icon" onclick="shareOnWhatsApp()" aria-label="Share on WhatsApp">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+        </svg>
+    </div>
+    <div class="social-icon twitter-icon" onclick="shareOnTwitter()" aria-label="Share on X (Twitter)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231L18.244 2.25z"/>
+        </svg>
+    </div>
+    <div class="social-icon facebook-icon" onclick="shareOnFacebook()" aria-label="Share on Facebook">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/>
+        </svg>
+    </div>
+</div>
+
 <div class="page-container">
-    
     <article class="article-container">
         <header class="article-header">
             <h1>{{ article.title }}</h1>
@@ -134,58 +206,59 @@
             {{ article.content }}
         </div>
         
-    <div class="questions-container">
-        <ul class="questions-list">
-            {% for question in questions %}
-                <li class="question-pill"><a href="{% url 'post-create' %}?area={{ article.area }}&content={{ question }}" style="color: inherit; text-decoration: none;">{{ question }}</a></li>
-            {% empty %}
-                <li class="question-pill">No questions available for this article.</li>
-            {% endfor %}
-        </ul>
-    </div>
-    <style>
-        .question-pill {
-            display: inline-block;
-            padding: 10px;
-            margin: 5px;
-            opacity: 0;
-            transform: translateY(20px);
-            border: 5px;
-            border-radius: 50px;
-            background-image: linear-gradient(to right, rgba(128, 128, 255, 0.8), rgba(241, 94, 68, 0.8));
-            padding: 10px 15px;
-            color: rgb(255, 255, 255);
-            transition: opacity 1s ease, transform 1s ease;
-        }
-
-        .question-pill.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    </style>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const questionPills = document.querySelectorAll('.question-pill');
-            const observer = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        questionPills.forEach((pill, index) => {
-                            setTimeout(() => {
-                                pill.classList.add('visible');
-                            }, index * 200); // Delay each animation by 200ms
-                        });
-                        observer.disconnect();
-                    }
-                });
-            }, { threshold: 0.1 });
-
-            observer.observe(document.querySelector('.questions-container'));
-        });
-    </script>
-    <footer>
-        <a href="{% url 'articles_by_area' area_name=area.name %}" class="back-link">← Back to {{ area.name|title}}</a>
-    </footer>
+        <div class="questions-container">
+            <ul class="questions-list">
+                {% for question in questions %}
+                    <li class="question-pill"><a href="{% url 'post-create' %}?area={{ article.area }}&content={{ question }}" style="color: inherit; text-decoration: none;">{{ question }}</a></li>
+                {% empty %}
+                    <li class="question-pill">No questions available for this article.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        <footer>
+            <a href="{% url 'articles_by_area' area_name=area.name %}" class="back-link">← Back to {{ area.name|title}}</a>
+        </footer>
     </article>
-    
 </div>
+
+<script type="text/javascript">
+    // Social Sharing Functions
+    function shareOnWhatsApp() {
+        const url = window.location.href;
+        const title = document.querySelector('h1').innerText;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(title + ' - ' + url)}`, '_blank');
+    }
+
+    function shareOnTwitter() {
+        const url = window.location.href;
+        const title = document.querySelector('h1').innerText;
+        window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`, '_blank');
+    }
+
+    function shareOnFacebook() {
+        const url = window.location.href;
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+    }
+
+    // Animation for question pills
+    const questionPills = document.querySelectorAll('.question-pill');
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                questionPills.forEach((pill, index) => {
+                    setTimeout(() => {
+                        pill.classList.add('visible');
+                    }, index * 200); // Delay each animation by 200ms
+                });
+                observer.disconnect();
+            }
+        });
+    }, { threshold: 0.1 });
+
+    const questionsContainer = document.querySelector('.questions-container');
+    if (questionsContainer) {
+        observer.observe(questionsContainer);
+    }
+</script>
 {% endblock %}

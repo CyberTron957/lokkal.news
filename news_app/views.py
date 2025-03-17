@@ -47,7 +47,7 @@ def run_gemini(text):
                                "response_schema": schema}
         )
 
-        response = model.generate_content(f"Based on the diverse comments collected from individuals in my area, please create a series of engaging news articles that effectively group similar topics and themes. Here are the comments: {text}")
+        response = model.generate_content(f"Based on the diverse comments collected from individuals in my area, please create a series of long engaging news articles that effectively group similar topics and themes. Here are the comments: {text}")
         parsed_data = json.loads(response.text)
         return parsed_data['articles']
     except Exception as e:
@@ -75,7 +75,7 @@ def generate_article_qs(article):
                                "response_schema": schema}
         )
 
-        response = model.generate_content(f"As an AI tasked with enhancing community engagement, please generate 3  insightful short questions based on the following article. These questions should encourage readers to share their own experiences or provide additional comments that could enrich the article: Title: {article.title}. Content: {article.content}")
+        response = model.generate_content(f"As an AI tasked with enhancing community engagement, please generate 3  insightful very short questions based on the following article. These questions should encourage readers to share their own experiences or provide additional comments that could enrich the article: Title: {article.title}. Content: {article.content}")
         parsed_data = json.loads(response.text)
         return parsed_data['questions']
     except Exception as e:
