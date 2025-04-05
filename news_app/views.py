@@ -152,11 +152,14 @@ def init_view(request):
         article__isnull=False  # Must have an associated article
     ).order_by('-visits')[:10]
     
-    # Extract the article objects directly
+    # Extract the article objects directly and sort by created_at
     trending_articles = []
     for url_model in trending_url_models:
         if url_model.article and url_model.article not in trending_articles:
             trending_articles.append(url_model.article)
+    
+    # Sort the trending articles by created_at
+    trending_articles.sort(key=lambda article: article.created_at, reverse=True)
     
     context = {
         'trending_pages': trending_pages,
