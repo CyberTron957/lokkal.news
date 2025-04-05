@@ -27,6 +27,14 @@ STOP_WORDS = set([
     "they", "this", "to", "was", "will", "with", "over", "post-oc" # Added 'over' and 'post-oc' based on example
 ])
 
+def normalize_area_name(name):
+    """Converts to lowercase, strips whitespace, and collapses internal spaces."""
+    if not name:
+        return ""
+    name = name.lower().strip()
+    name = re.sub(r'\s+', ' ', name) # Replace multiple spaces with single space
+    return name
+
 def run_gemini(text):
     try:
         schema = {
@@ -49,7 +57,7 @@ def run_gemini(text):
         }
 
         model = genai.GenerativeModel(
-            'gemini-1.5-pro',
+            'gemini-2.0-flash',
             generation_config={"response_mime_type": "application/json",
                                "response_schema": schema}
         )
@@ -152,7 +160,11 @@ def fetch_cover_image(query, category=None):
 
 def init_view(request):
     if request.method == 'POST':
-        area_name = request.POST.get('area').lower()
+        # Normalize the area name from the form
+        area_name = normalize_area_name(request.POST.get('area'))
+        if not area_name:
+            messages.error(request, "Area name cannot be empty.")
+            return redirect('enter_area') # Redirect back to the init page
         area, _ = Area.objects.get_or_create(name=area_name)
         return redirect(f'/{area_name}/')
    
@@ -168,13 +180,13 @@ def init_view(request):
             trending_pages_data.append({
                 'path': url.path,
                 'visits': url.visits,
-                'display_name': url.area.name.title()
+                'name': url.area.name.title()
             })
     
     # Debug print
     print(f"Found {len(trending_pages_data)} trending areas")
     for p in trending_pages_data:
-        print(f"Area: {p['display_name']}, Path: {p['path']}, Visits: {p['visits']}")
+        print(f"Area: {p['name']}, Path: {p['path']}, Visits: {p['visits']}")
     
     # Get trending articles - filter by article being not null
     trending_url_models = URLModel.objects.filter(
@@ -199,8 +211,11 @@ genai.configure(api_key='AIzaSyDf2x-ENW14KrJEJZSIgY4LLnTv6ns52bQ')
 
 def autocomplete_area(request):
     if 'term' in request.GET:
-        qs = Area.objects.filter(name__icontains=request.GET.get('term'))
-        area_names = list(set(area_name.capitalize() for area_name in qs.values_list('name', flat=True)))
+        # Normalize the search term
+        term = normalize_area_name(request.GET.get('term'))
+        qs = Area.objects.filter(name__icontains=term)
+        # Keep capitalization for display purposes if needed, but filtering is case-insensitive now
+        area_names = list(set(area.name.title() for area in qs)) # Use title() for display
         return JsonResponse(area_names, safe=False)
     return JsonResponse([], safe=False)
 
@@ -213,7 +228,11 @@ def all_articles_view(request):
     return render(request, 'all_articles.html', context)
 
 def article_detail_by_slug(request, area_name, article_slug):
-    area = get_object_or_404(Area, name=area_name.lower())
+    # Normalize area name from URL
+    normalized_area_name = normalize_area_name(area_name)
+    area = get_object_or_404(Area, name=normalized_area_name)
+    # Use the original area_name (or normalized) for context/display if needed
+    # Keeping original for potential display differences, but using normalized for lookup
     article = get_object_or_404(Article, slug=article_slug, areas=area)
     
     # Check if questions already exist for the article
@@ -236,10 +255,10 @@ def article_detail_by_slug(request, area_name, article_slug):
 def article_detail(request, article_id):
     article = get_object_or_404(Article, pk=article_id)
     # Find the first area associated with this article
-    area = article.areas.first()
+    area = article.areas.first() # type: ignore
     
     if area:
-        # Redirect to the new URL pattern
+        # Redirect to the new URL pattern using the area's actual name
         return redirect('article_detail_by_slug', area_name=area.name, article_slug=article.slug)
     
     # If no area is found, fall back to the original view
@@ -260,44 +279,59 @@ def article_detail(request, article_id):
 
 def post_create(request):
     if request.method == 'POST':
-        area_name = request.POST.get('area', '').lower()
+        # Normalize the area name from the form
+        area_name = normalize_area_name(request.POST.get('area', ''))
         content = request.POST.get('content', '').strip()
-        form = PostForm(request.POST)
+        form = PostForm(request.POST) # Still pass original POST data to form
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            if not content or not area_name:
-                return JsonResponse({
-                    'success': False,
-                    'errors': {
-                        'content': not content,
-                        'area': not area_name
-                    }
-                })
-            
-            if form.is_valid():
-                post = form.save(commit=False)
-                post.content = content
-                area, _ = Area.objects.get_or_create(name=area_name)
-                post.save()
-                area.posts.add(post)
-                
-                time.sleep(1)
+            errors = {}
+            if not content:
+                errors['content'] = True
+            if not area_name: # Check normalized name
+                errors['area'] = True
+
+            if errors:
+                 return JsonResponse({'success': False, 'errors': errors})
+
+            # Since we normalized area_name, don't rely on form validation for it here
+            # Just proceed with creating/getting the area
+            area, _ = Area.objects.get_or_create(name=area_name)
+            # Manually create post if content is valid
+            if content:
+                # Assign the Area object directly to the ForeignKey
+                post = Post.objects.create(content=content, area=area)
+                # No longer need area.posts.add(post) because the relationship is handled by the ForeignKey
+                time.sleep(1) # Keep the delay if needed
                 return JsonResponse({'success': True})
-            
-            return JsonResponse({'success': False, 'errors': form.errors})
-        
+            else:
+                # Should not happen if initial check passed, but as fallback
+                return JsonResponse({'success': False, 'errors': {'content': True}})
+
+
+        # Non-AJAX request handling (standard form submission)
         if form.is_valid():
             post = form.save(commit=False)
-            post.content = content
+            post.content = content # Already got content above
+            # Get the Area object
             area, _ = Area.objects.get_or_create(name=area_name)
-            post.save()
-            area.posts.add(post)
+            # Assign the Area object directly to the ForeignKey
+            post.area = area
+            post.save() # Save the post with the associated area
+            # No longer need area.posts.add(post)
             return redirect(f'/{area_name}/')
-    else:
+        else:
+             # If form is invalid (e.g., other fields added later), render with errors
+             # Pass the original potentially non-normalized area back to the form for display
+             form = PostForm(initial={'area': request.POST.get('area', ''), 'content': content})
+             return render(request, 'post_form.html', {'form': form})
+
+    else: # GET request
         content = request.GET.get('content', '')
-        area = request.GET.get('area', '')
-        form = PostForm(initial={'area': area, 'content': content})
-    
+        # Normalize area from GET param if present
+        area_param = normalize_area_name(request.GET.get('area', ''))
+        form = PostForm(initial={'area': area_param, 'content': content})
+
     return render(request, 'post_form.html', {'form': form})
 
 
@@ -307,8 +341,9 @@ def get_posts_content_by_area(area_name, since=None):
     Optionally filters posts created after a specific timestamp ('since').
     """
     try:
-        area = Area.objects.get(name=area_name.lower())
-        posts_query = area.posts.all()
+        area = Area.objects.get(name=area_name.lower()) # Keep lower() here for lookup if URLs/inputs aren't normalized
+        # Use the related name from Post.area ForeignKey
+        posts_query = area.area_posts.all() # type: ignore
         if since:
             print(f"Fetching posts for '{area_name}' created after {since}")
             posts_query = posts_query.filter(date_posted__gt=since)
@@ -334,16 +369,19 @@ def get_posts_content_by_area(area_name, since=None):
 
 def generate_news(request):
     if request.method == 'POST':
-        area_name = request.POST.get('area').lower()
+        # Normalize the area name from the form
+        area_name = normalize_area_name(request.POST.get('area'))
         if not area_name:
              messages.error(request, "Area name cannot be empty.")
-             return redirect(request.META.get('HTTP_REFERER', '/')) # Redirect back or to a default page
+             return redirect(request.META.get('HTTP_REFERER', '/')) # Redirect back
 
         try:
+            # Use normalized name to get the Area
             area = Area.objects.get(name=area_name)
         except Area.DoesNotExist:
-             messages.error(request, f"Area '{area_name}' not found.")
-             # Optionally create it here if desired: area, _ = Area.objects.get_or_create(name=area_name)
+             messages.error(request, f"Area '{request.POST.get('area')}' not found.") # Show original input in message
+             # Optionally create it here if desired:
+             # area, _ = Area.objects.get_or_create(name=area_name)
              return redirect(request.META.get('HTTP_REFERER', '/'))
 
         print(f"Generating news for area: {area_name}")
@@ -401,11 +439,11 @@ def generate_news(request):
             except Exception as e:
                  print(f"Error creating or associating article '{title}': {e}")
 
-
-        # Update the last generated timestamp for the area AFTER processing
-        area.last_generated_at = timezone.now()
-        area.save(update_fields=['last_generated_at'])
-        print(f"Updated last_generated_at for {area_name} to {area.last_generated_at}")
+        if newly_created_count > 0:
+            # Update the last generated timestamp for the area AFTER processing
+            area.last_generated_at = timezone.now()
+            area.save(update_fields=['last_generated_at'])
+            print(f"Updated last_generated_at for {area_name} to {area.last_generated_at}")
 
         messages.success(request, f"Successfully generated {newly_created_count} new articles for '{area.name.title()}'.")
         return redirect(f'/{area_name}/')
@@ -414,7 +452,9 @@ def generate_news(request):
     return redirect('/') # Or wherever appropriate for a GET request
 
 def articles_by_area(request, area_name):
-    area = get_object_or_404(Area, name=area_name.lower())
+    # Normalize area name from URL
+    normalized_area_name = normalize_area_name(area_name)
+    area = get_object_or_404(Area, name=normalized_area_name)
     
     # Get articles for this area
     articles = area.articles.all().order_by('-created_at')

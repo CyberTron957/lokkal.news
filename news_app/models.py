@@ -10,7 +10,7 @@ import hashlib
 class Article(models.Model):
     title = models.CharField(max_length=255)
     content = models.TextField()
-    category = models.TextField(default="news")
+    category = models.CharField(max_length=100, default="news")
     cover_image = models.URLField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
@@ -37,15 +37,11 @@ class questions(models.Model):
 class Post(models.Model):
     content = models.TextField()
     date_posted = models.DateTimeField(default=timezone.now)
-    area = models.CharField(max_length=255)
-    image = models.ImageField(upload_to='post_images/', null=True, blank=True)  
-
-    def save(self, *args, **kwargs):
-        self.area = self.area.lower()  # Convert to lowercase
-        super().save(*args, **kwargs)
+    area = models.ForeignKey('Area', on_delete=models.CASCADE, related_name='area_posts')
+    image = models.ImageField(upload_to='post_images/', null=True, blank=True)
 
     def __str__(self):
-        return str(self.id)  # type: ignore
+        return f"Post in {self.area.name}: {self.content[:50]}..." if self.area else f"Post: {self.content[:50]}..."
 
 class URLModel(models.Model):
     path = models.CharField(max_length=255)
@@ -62,7 +58,6 @@ class URLModel(models.Model):
 class Area(models.Model):
     name = models.CharField(max_length=255, unique=True)
     articles = models.ManyToManyField(Article, related_name='areas', blank=True)
-    posts = models.ManyToManyField(Post, related_name='areas', blank=True)
     last_generated_at = models.DateTimeField(null=True, blank=True, editable=False)
 
     def save(self, *args, **kwargs):

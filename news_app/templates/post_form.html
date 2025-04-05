@@ -219,7 +219,14 @@ document.getElementById('storyForm').addEventListener('submit', function(e) {
                 
                 // Setup back to area button
                 document.getElementById('backToAreaBtn').onclick = function() {
-                    window.location.href = `/${area.value}/`;
+                    // Normalize the area name from the input field for the redirect URL
+                    let areaName = document.getElementById('area').value.trim().toLowerCase();
+                    areaName = areaName.replace(/\s+/g, ' '); // Collapse spaces
+                    if (areaName) {
+                        window.location.href = `/${encodeURIComponent(areaName)}/`;
+                    } else {
+                         window.location.href = '/'; // Fallback if area name somehow becomes empty
+                    }
                 };
             } else {
                 // Handle errors
