@@ -18,7 +18,7 @@ from django.template import loader
 import os
 
 
-genai.configure(api_key='AIzaSyDf2x-ENW14KrJEJZSIgY4LLnTv6ns52bQ')
+genai.configure(api_key='YOUR API KEY')
 
 def run_gemini(text):
     try:
