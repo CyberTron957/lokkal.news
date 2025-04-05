@@ -3,7 +3,6 @@ from . import views
 
 urlpatterns = [
     path('', views.init_view, name = 'enter_area'),
-    path('upload/', views.upload_and_generate, name='upload_and_generate'),
     path('post/new/', views.post_create, name='post-create'),
     path('generate-news/', views.generate_news, name='generate_news'), # type: ignore
     path('autocomplete/area/', views.autocomplete_area, name='autocomplete_area'),

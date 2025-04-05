@@ -60,9 +60,10 @@ class URLModel(models.Model):
 
 
 class Area(models.Model):
-    name = models.CharField(max_length=255)
-    articles = models.ManyToManyField(Article, related_name='areas')
-    posts = models.ManyToManyField(Post, related_name='areas')
+    name = models.CharField(max_length=255, unique=True)
+    articles = models.ManyToManyField(Article, related_name='areas', blank=True)
+    posts = models.ManyToManyField(Post, related_name='areas', blank=True)
+    last_generated_at = models.DateTimeField(null=True, blank=True, editable=False)
 
     def save(self, *args, **kwargs):
         self.name = self.name.lower()

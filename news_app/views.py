@@ -16,9 +16,16 @@ from django.utils import timezone
 from datetime import timedelta
 from django.template import loader
 import os
+import re # Import regular expressions for cleaning
 
-
-genai.configure(api_key='YOUR API KEY')
+# A simple list of common English stop words. You could expand this.
+STOP_WORDS = set([
+    "a", "an", "and", "are", "as", "at", "be", "but", "by",
+    "for", "if", "in", "into", "is", "it",
+    "no", "not", "of", "on", "or", "such",
+    "that", "the", "their", "then", "there", "these",
+    "they", "this", "to", "was", "will", "with", "over", "post-oc" # Added 'over' and 'post-oc' based on example
+])
 
 def run_gemini(text):
     try:
@@ -82,46 +89,66 @@ def generate_article_qs(article):
         print(f"Error: {e}")
         return []
 
-def fetch_cover_image(query):
+def fetch_cover_image(query, category=None):
+    """
+    Fetches a cover image from Unsplash based on a query and optional category.
+    Filters stop words from the query for better relevance.
+    """
+    if not query:
+        print("Error: Empty query passed to fetch_cover_image.")
+        return None
+
+    # Clean the query: remove punctuation, convert to lowercase
+    cleaned_query = re.sub(r'[^\w\s]', '', query.lower())
+    words = cleaned_query.split()
+
+    # Filter stop words
+    keywords = [word for word in words if word not in STOP_WORDS]
+
+    # Limit the number of keywords (e.g., max 5)
+    keywords = keywords[:5]
+
+    # Add category to keywords if provided and meaningful
+    if category and category.lower() not in STOP_WORDS and category.lower() != 'news': # Avoid generic 'news'
+         keywords.append(category.lower())
+
+    # Create the final search query string
+    if not keywords:
+         # If all words were stop words, fall back to the first 2-3 original words
+         simplified_query = " ".join(query.split()[:3])
+         print(f"No significant keywords found in '{query}'. Falling back to: '{simplified_query}'")
+    else:
+        simplified_query = " ".join(keywords)
+        print(f"Original query: '{query}', Category: '{category}', Keywords for search: '{simplified_query}'")
+
     try:
         url = f"https://api.unsplash.com/search/photos"
+        client_id = os.environ.get("UNSPLASH_ACCESS_KEY", "LSOUqV2JJVVQMYMapOqQdsMKkC1_Nrmu0w45m5NHpQc") # Use your actual key or env var
         params = {
-            "query": query,
-            "client_id":"LSOUqV2JJVVQMYMapOqQdsMKkC1_Nrmu0w45m5NHpQc",
-            "per_page": 1
+            "query": simplified_query, # Use the keyword-based query
+            "client_id": client_id,
+            "per_page": 1,
+            "orientation": "landscape"
         }
         response = requests.get(url, params=params)
         response.raise_for_status()
         data = response.json()
-        if data["results"]:
-            return data["results"][0]["urls"]["regular"]  # Get the URL of the first image
+        if data.get("results"):
+            image_url = data["results"][0].get("urls", {}).get("regular")
+            if image_url:
+                print(f"  Successfully fetched image: {image_url}")
+                return image_url
+            else:
+                print("  No regular URL found in the first image result.")
+        else:
+            print(f"  No image results found for query: '{simplified_query}'")
+    except requests.exceptions.RequestException as e:
+        print(f"  Error fetching image from Unsplash: {e}")
     except Exception as e:
-        print(f"Error fetching image: {e}")
-    return None
+        print(f"  An unexpected error occurred: {e}")
 
+    return None # Return None if anything goes wrong or no image is found
 
-def upload_and_generate(request):
-    if request.method == 'POST' and request.FILES.get('file'):
-        file = request.FILES['file']
-        file_path = default_storage.save('uploads/' + file.name, file)
-        with open(file_path, 'r') as f:
-            text = f.read()
-
-        # Generate articles
-        articles = run_gemini(text)
-
-        # Save articles to the database with cover images
-        for article_data in articles:
-            cover_image_url = fetch_cover_image(article_data['title'] or article_data['content'])
-            Article.objects.create(
-                title=article_data['title'],
-                content=article_data['content'],
-                cover_image=cover_image_url
-            )
-
-        return redirect('news_view')
-
-    return render(request, 'upload.html')
 
 def init_view(request):
     if request.method == 'POST':
@@ -135,17 +162,19 @@ def init_view(request):
         article__isnull=True  # Exclude article URLs
     ).order_by('-visits')[:8]
     
-    trending_pages = []
+    trending_pages_data = []
     for url in area_urls:
         if url.area:
-            # Create display info for the template
-            url.display_name = url.area.name.title()  # Capitalize area name
-            trending_pages.append(url)
+            trending_pages_data.append({
+                'path': url.path,
+                'visits': url.visits,
+                'display_name': url.area.name.title()
+            })
     
     # Debug print
-    print(f"Found {len(trending_pages)} trending areas")
-    for p in trending_pages:
-        print(f"Area: {p.display_name}, Path: {p.path}, Visits: {p.visits}")
+    print(f"Found {len(trending_pages_data)} trending areas")
+    for p in trending_pages_data:
+        print(f"Area: {p['display_name']}, Path: {p['path']}, Visits: {p['visits']}")
     
     # Get trending articles - filter by article being not null
     trending_url_models = URLModel.objects.filter(
@@ -162,10 +191,11 @@ def init_view(request):
     trending_articles.sort(key=lambda article: article.created_at, reverse=True)
     
     context = {
-        'trending_pages': trending_pages,
+        'trending_pages': trending_pages_data,
         'trending_articles': trending_articles
     }
     return render(request, 'init.html', context)
+genai.configure(api_key='AIzaSyDf2x-ENW14KrJEJZSIgY4LLnTv6ns52bQ') 
 
 def autocomplete_area(request):
     if 'term' in request.GET:
@@ -271,49 +301,118 @@ def post_create(request):
     return render(request, 'post_form.html', {'form': form})
 
 
-def get_posts_content_by_area(area_name):
-    area = Area.objects.get(name=area_name)
-    posts = area.posts.all()
-    all_content = '" "'.join(post.content for post in posts)
-    return all_content
+def get_posts_content_by_area(area_name, since=None):
+    """
+    Fetches the combined content of posts for a given area.
+    Optionally filters posts created after a specific timestamp ('since').
+    """
+    try:
+        area = Area.objects.get(name=area_name.lower())
+        posts_query = area.posts.all()
+        if since:
+            print(f"Fetching posts for '{area_name}' created after {since}")
+            posts_query = posts_query.filter(date_posted__gt=since)
+        else:
+            print(f"Fetching all posts for '{area_name}' (initial generation or no 'since' date)")
 
+        posts = posts_query.order_by('date_posted') # Ensure order if needed by LLM
+
+        if not posts.exists():
+            print("No posts found matching the criteria.")
+            return None # Return None if no posts match
+
+        all_content = '" "'.join(post.content for post in posts)
+        print(f"Found {posts.count()} posts, combined content length: {len(all_content)}")
+        return all_content
+    except Area.DoesNotExist:
+        print(f"Area '{area_name}' not found.")
+        return None
+    except Exception as e:
+        print(f"Error getting posts content for '{area_name}': {e}")
+        return None
 
 
 def generate_news(request):
     if request.method == 'POST':
         area_name = request.POST.get('area').lower()
-        area, _ = Area.objects.get_or_create(name=area_name)
-        
+        if not area_name:
+             messages.error(request, "Area name cannot be empty.")
+             return redirect(request.META.get('HTTP_REFERER', '/')) # Redirect back or to a default page
+
+        try:
+            area = Area.objects.get(name=area_name)
+        except Area.DoesNotExist:
+             messages.error(request, f"Area '{area_name}' not found.")
+             # Optionally create it here if desired: area, _ = Area.objects.get_or_create(name=area_name)
+             return redirect(request.META.get('HTTP_REFERER', '/'))
+
         print(f"Generating news for area: {area_name}")
-        
-        # Get existing articles for this area
-        existing_articles = area.articles.all()
-        if existing_articles.exists():
-            print(f"Removing {existing_articles.count()} existing articles")
-            area.articles.clear()
-        
-        comments = get_posts_content_by_area(area_name)
-        articles = run_gemini(comments)
-        
-        print(f"Generated {len(articles)} new articles")
-        
-        for article_data in articles:
-            cover_image_url = fetch_cover_image(article_data['title'] or article_data['content'])
-            article = Article.objects.create(
-                title=article_data['title'],
-                content=article_data['content'],
-                category=article_data.get('category', 'news'),
-                cover_image=cover_image_url
-            )
-            # Explicitly add the article to the area
-            area.articles.add(article)
-            print(f"Created and associated article: {article.title}")
-        
-        # Verify the association
-        print(f"Total articles now associated with {area_name}: {area.articles.count()}")
-        
+        last_gen_time = area.last_generated_at
+        print(f"Last generation time for {area_name}: {last_gen_time}")
+
+        # Get content of NEW posts since the last generation
+        new_comments = get_posts_content_by_area(area_name, since=last_gen_time)
+
+        if not new_comments:
+            print(f"No new comments found for {area_name} since {last_gen_time}. No articles generated.")
+            messages.info(request, f"No new comments found for '{area.name.title()}'. News is up to date.")
+            return redirect(f'/{area_name}/') # Redirect to the area page
+
+        print(f"Found new comments for {area_name}. Sending to LLM...")
+        # Generate articles ONLY from the new comments
+        # Consider adjusting the run_gemini prompt if you want it to be aware
+        # that these are *new* comments, e.g., ask it to generate updates or new topics.
+        articles_data = run_gemini(new_comments)
+
+        print(f"LLM generated {len(articles_data)} new articles")
+
+        if not articles_data:
+             print("LLM did not return any articles.")
+             messages.warning(request, "Could not generate new articles from the latest comments.")
+             # Update timestamp even if no articles generated to avoid reprocessing same comments
+             area.last_generated_at = timezone.now()
+             area.save(update_fields=['last_generated_at'])
+             return redirect(f'/{area_name}/')
+
+        newly_created_count = 0
+        for article_data in articles_data:
+            title = article_data.get('title')
+            content = article_data.get('content')
+
+            if not title or not content:
+                print("Skipping article data with missing title or content.")
+                continue
+
+            # Fetch cover image using the refined logic (pass category too)
+            category = article_data.get('category', 'news')
+            cover_image_url = fetch_cover_image(title, category)
+
+            try:
+                article = Article.objects.create(
+                    title=title,
+                    content=content,
+                    category=category,
+                    cover_image=cover_image_url
+                )
+                # Associate the new article with the area
+                area.articles.add(article)
+                newly_created_count += 1
+                print(f"Created and associated article: {article.title} (ID: {article.id})")
+            except Exception as e:
+                 print(f"Error creating or associating article '{title}': {e}")
+
+
+        # Update the last generated timestamp for the area AFTER processing
+        area.last_generated_at = timezone.now()
+        area.save(update_fields=['last_generated_at'])
+        print(f"Updated last_generated_at for {area_name} to {area.last_generated_at}")
+
+        messages.success(request, f"Successfully generated {newly_created_count} new articles for '{area.name.title()}'.")
         return redirect(f'/{area_name}/')
-    
+
+    # Handle GET request (optional, maybe redirect or show a form)
+    return redirect('/') # Or wherever appropriate for a GET request
+
 def articles_by_area(request, area_name):
     area = get_object_or_404(Area, name=area_name.lower())
     
