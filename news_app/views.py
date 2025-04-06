@@ -391,12 +391,12 @@ def generate_news(request):
         print(f"Last generation time for {area_name}: {last_gen_time}")
 
         # Get content of NEW posts since the last generation
-        new_comments = get_posts_content_by_area(area_name)
+        new_comments = get_posts_content_by_area(area_name, since=last_gen_time)
 
-        # if not new_comments:
-        #     print(f"No new comments found for {area_name} since {last_gen_time}. No articles generated.")
-        #     messages.info(request, f"No new comments found for '{area.name.title()}'. News is up to date.")
-        #     return redirect(f'/{area_name}/') # Redirect to the area page
+        if not new_comments:
+            print(f"No new comments found for {area_name} since {last_gen_time}. No articles generated.")
+            messages.info(request, f"No new comments found for '{area.name.title()}'. News is up to date.")
+            return redirect(f'/{area_name}/') # Redirect to the area page
 
         print(f"Found new comments for {area_name}. Sending to LLM...")
         # Generate articles ONLY from the new comments
