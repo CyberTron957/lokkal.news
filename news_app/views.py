@@ -10,7 +10,7 @@ import google.generativeai as genai
 import requests
 import json
 from django.http import JsonResponse, HttpResponse
-from django.db.models import Count
+from django.db.models import Count, Q, Sum
 from django.urls import resolve
 from django.utils import timezone
 from datetime import timedelta
@@ -168,38 +168,47 @@ def init_view(request):
         area, _ = Area.objects.get_or_create(name=area_name)
         return redirect(f'/{area_name}/')
    
-    # Get the most visited area pages
-    area_urls = URLModel.objects.filter(
-        area__isnull=False,  # Only get URLs associated with an area
-        article__isnull=True  # Exclude article URLs
-    ).order_by('-visits')[:8]
+    # Get the top areas based on the SUM of visits of their associated non-article URLModels
+    top_areas = Area.objects.annotate(
+        total_visits=Sum(
+            'urlmodel__visits', 
+            filter=Q(urlmodel__article__isnull=True) # Only count visits for area pages, not articles
+        )
+    ).filter(
+        total_visits__isnull=False # Ensure the area has associated page visits
+    ).order_by('-total_visits')[:8] # Get top 8 areas by summed visits
     
     trending_pages_data = []
-    for url in area_urls:
-        if url.area:
-            trending_pages_data.append({
-                'path': url.path,
-                'visits': url.visits,
-                'name': url.area.name.title()
-            })
+    for area in top_areas:
+        # We use the area name directly as the path component now
+        trending_pages_data.append({
+            'path': area.name, # Use the canonical area name for the link path
+            'visits': area.total_visits, # type: ignore
+            'name': area.name.title() # Display title-cased name
+        })
     
-    # Debug print
-    print(f"Found {len(trending_pages_data)} trending areas")
+    # Debug print (can be removed or kept for monitoring)
+    print(f"Found {len(trending_pages_data)} trending areas (aggregated)")
     for p in trending_pages_data:
-        print(f"Area: {p['name']}, Path: {p['path']}, Visits: {p['visits']}")
+        print(f"Area: {p['name']}, Path: {p['path']}, Total Visits: {p['visits']}")
     
     # Get trending articles - filter by article being not null
     trending_url_models = URLModel.objects.filter(
         article__isnull=False  # Must have an associated article
     ).order_by('-visits')[:10]
     
-    # Extract the article objects directly
-    trending_articles = []
+    # Extract the article objects directly, ensuring uniqueness
+    trending_articles_dict = {} # Use dict to handle potential duplicates based on article PK
     for url_model in trending_url_models:
-        if url_model.article and url_model.article not in trending_articles:
-            trending_articles.append(url_model.article)
-            
-    # Sort the trending articles by creation date (newest first)
+        if url_model.article and url_model.article.pk not in trending_articles_dict:
+             trending_articles_dict[url_model.article.pk] = url_model.article
+
+    # Get the articles from the dictionary values
+    trending_articles = list(trending_articles_dict.values())
+
+    # Sort the unique trending articles by creation date (newest first)
+    # Note: This sorting happens *after* selecting based on visits. 
+    # You might want to reconsider if primary sort should be date or visits.
     trending_articles.sort(key=lambda article: article.created_at, reverse=True)
     
     context = {
