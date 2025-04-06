@@ -209,7 +209,7 @@
         <div class="questions-container">
             <ul class="questions-list">
                 {% for question in questions %}
-                    <li class="question-pill"><a href="{% url 'post-create' %}?area={{ article.area }}&content={{ question }}" style="color: inherit; text-decoration: none;">{{ question }}</a></li>
+                    <li class="question-pill"><a href="{% url 'post-create' %}?area={{ article.area.name }}&content={{ question }}" style="color: inherit; text-decoration: none;">{{ question }}</a></li>
                 {% empty %}
                     <li class="question-pill">No questions available for this article.</li>
                 {% endfor %}

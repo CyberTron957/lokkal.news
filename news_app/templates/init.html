@@ -145,13 +145,13 @@
             <div class="flex flex-wrap gap-3 justify-center">
                 {% if trending_pages %}
                     {% for page in trending_pages %}
-                    {% if page.display_name %}
+                    {% if page.name %}
                             <a href="/{{ page.path }}" class="popular-page-item px-4 py-2">
                                 <svg class="trending-icon text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                                         d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                                 </svg>
-                                <span class="text-gray-800">{{ page.display_name }}</span>
+                                <span class="text-gray-800">{{ page.name }}</span>
                                 <span class="trending-count">{{ page.visits }} visits</span>
                             </a>
                     {% endif %}

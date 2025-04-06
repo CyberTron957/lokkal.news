@@ -207,6 +207,7 @@ def init_view(request):
         'trending_articles': trending_articles
     }
     return render(request, 'init.html', context)
+
 genai.configure(api_key='AIzaSyDf2x-ENW14KrJEJZSIgY4LLnTv6ns52bQ') 
 
 def autocomplete_area(request):
@@ -233,7 +234,7 @@ def article_detail_by_slug(request, area_name, article_slug):
     area = get_object_or_404(Area, name=normalized_area_name)
     # Use the original area_name (or normalized) for context/display if needed
     # Keeping original for potential display differences, but using normalized for lookup
-    article = get_object_or_404(Article, slug=article_slug, areas=area)
+    article = get_object_or_404(Article, slug=article_slug, area=area)
     
     # Check if questions already exist for the article
     if not questions.objects.filter(article=article).exists():
@@ -254,9 +255,10 @@ def article_detail_by_slug(request, area_name, article_slug):
 # Keep the old view for backwards compatibility if needed
 def article_detail(request, article_id):
     article = get_object_or_404(Article, pk=article_id)
-    # Find the first area associated with this article
-    area = article.areas.first() # type: ignore
-    
+    # Find the area associated with this article using the ForeignKey
+    # The relationship is now direct: article.area
+    area = article.area
+
     if area:
         # Redirect to the new URL pattern using the area's actual name
         return redirect('article_detail_by_slug', area_name=area.name, article_slug=article.slug)
@@ -389,12 +391,12 @@ def generate_news(request):
         print(f"Last generation time for {area_name}: {last_gen_time}")
 
         # Get content of NEW posts since the last generation
-        new_comments = get_posts_content_by_area(area_name, since=last_gen_time)
+        new_comments = get_posts_content_by_area(area_name)
 
-        if not new_comments:
-            print(f"No new comments found for {area_name} since {last_gen_time}. No articles generated.")
-            messages.info(request, f"No new comments found for '{area.name.title()}'. News is up to date.")
-            return redirect(f'/{area_name}/') # Redirect to the area page
+        # if not new_comments:
+        #     print(f"No new comments found for {area_name} since {last_gen_time}. No articles generated.")
+        #     messages.info(request, f"No new comments found for '{area.name.title()}'. News is up to date.")
+        #     return redirect(f'/{area_name}/') # Redirect to the area page
 
         print(f"Found new comments for {area_name}. Sending to LLM...")
         # Generate articles ONLY from the new comments
@@ -430,14 +432,17 @@ def generate_news(request):
                     title=title,
                     content=content,
                     category=category,
-                    cover_image=cover_image_url
+                    cover_image=cover_image_url,
+                    # Assign the Area object directly during creation
+                    area=area
                 )
-                # Associate the new article with the area
-                area.articles.add(article)
+                # No longer need area.articles.add(article)
+                # area.articles.add(article)
                 newly_created_count += 1
-                print(f"Created and associated article: {article.title} (ID: {article.id})")
+                # Use article.pk instead of article.id to satisfy linter
+                print(f"Created article: {article.title} (PK: {article.pk}) for Area: {area.name}")
             except Exception as e:
-                 print(f"Error creating or associating article '{title}': {e}")
+                 print(f"Error creating article '{title}': {e}")
 
         if newly_created_count > 0:
             # Update the last generated timestamp for the area AFTER processing
@@ -456,8 +461,8 @@ def articles_by_area(request, area_name):
     normalized_area_name = normalize_area_name(area_name)
     area = get_object_or_404(Area, name=normalized_area_name)
     
-    # Get articles for this area
-    articles = area.articles.all().order_by('-created_at')
+    # Get articles for this area using the reverse relationship
+    articles = area.articles.all().order_by('-created_at') # type: ignore
     
     context = {
         'area': area,

@@ -14,9 +14,10 @@ class Article(models.Model):
     cover_image = models.URLField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
+    area = models.ForeignKey('Area', on_delete=models.CASCADE, related_name='articles', null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if not self.slug:
+        if not self.slug:       
             unique_hash = hashlib.sha256(self.title.encode()).hexdigest()  # Generate a unique hash
             self.slug = f"{slugify(self.title)}-{unique_hash}"  # Append the hash to the slug
         super().save(*args, **kwargs)
@@ -41,7 +42,7 @@ class Post(models.Model):
     image = models.ImageField(upload_to='post_images/', null=True, blank=True)
 
     def __str__(self):
-        return f"Post in {self.area.name}: {self.content[:50]}..." if self.area else f"Post: {self.content[:50]}..."
+        return f"Post in {self.area.name}: {self.content[:50]}..." if self.area else f"Post (PK:{self.pk}): {self.content[:50]}..."
 
 class URLModel(models.Model):
     path = models.CharField(max_length=255)
@@ -57,7 +58,6 @@ class URLModel(models.Model):
 
 class Area(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    articles = models.ManyToManyField(Article, related_name='areas', blank=True)
     last_generated_at = models.DateTimeField(null=True, blank=True, editable=False)
 
     def save(self, *args, **kwargs):

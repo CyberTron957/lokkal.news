@@ -36,7 +36,7 @@ class PageViewMiddleware:
                     
                     try:
                         area = Area.objects.get(name=area_name)
-                        article = Article.objects.get(slug=article_slug, areas=area)
+                        article = Article.objects.get(slug=article_slug, area=area)
                         
                         url_obj, created = URLModel.objects.get_or_create(path=path)
                         url_obj.article = article
