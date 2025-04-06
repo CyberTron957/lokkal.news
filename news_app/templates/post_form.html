@@ -106,6 +106,39 @@
     .back-to-area-btn:hover {
         background-color: #0b5ed7;
     }
+
+    /* Styles for Autocomplete Suggestions */
+    .suggestions-container {
+        position: relative; /* Needed for absolute positioning of suggestions */
+    }
+
+    #suggestions {
+        position: absolute;
+        background-color: white;
+        border: 1px solid #ced4da;
+        border-top: none;
+        border-radius: 0 0 0.25rem 0.25rem;
+        width: 100%; /* Match input width */
+        max-height: 150px; /* Limit height */
+        overflow-y: auto; /* Add scroll if needed */
+        z-index: 1000; /* Ensure it's above other elements */
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        list-style: none; /* Remove default list styling */
+        padding: 0;
+        margin: 0;
+        display: none; /* Hidden by default */
+    }
+
+    #suggestions li {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    #suggestions li:hover {
+        background-color: #e9ecef;
+    }
+    /* End Autocomplete Styles */
 </style>
 {% endblock %}
 
@@ -146,7 +179,7 @@
                         </div>
 
                         <!-- area field -->
-                        <div class="mb-3">
+                        <div class="mb-3 suggestions-container">
                             <label for="area" class="form-label">Pincode/Area</label>
                             <input 
                                 type="text" 
@@ -155,7 +188,11 @@
                                 class="form-control"
                                 value="{{ form.area.value|default:'' }}"
                                 required
+                                autocomplete="off" {# Disable browser autocomplete #}
                             >
+                             <ul id="suggestions">
+                                {# Suggestions will be loaded here by JavaScript #}
+                            </ul>
                             <div class="invalid-feedback">
                                 Please enter a valid area.
                             </div>
@@ -248,3 +285,68 @@ document.getElementById('storyForm').addEventListener('submit', function(e) {
 });
 </script>
 {% endblock content %}
+
+{% block extra_js %}
+<script>
+// Add Autocomplete script
+$(document).ready(function() {
+    const $areaInput = $('#area');
+    const $suggestionsList = $('#suggestions');
+
+    $areaInput.on('keyup', function() {
+        const query = $(this).val();
+        if (query.length > 1) { // Start searching after 1 character
+            $.ajax({
+                url: '/autocomplete/area/', // Ensure this URL is correct
+                data: { 'term': query },
+                success: function(data) {
+                    $suggestionsList.empty();
+                    if (data.length > 0) {
+                        data.forEach(function(item) {
+                            $suggestionsList.append(
+                                '<li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">' + item + '</li>'
+                            );
+                        });
+                        $suggestionsList.show();
+                    } else {
+                        $suggestionsList.hide();
+                    }
+                },
+                error: function() {
+                    console.error("Error fetching area suggestions.");
+                    $suggestionsList.hide();
+                }
+            });
+        } else {
+            $suggestionsList.hide();
+        }
+    });
+
+    // Handle click on suggestion item
+    $(document).on('click', '#suggestions li', function() {
+        $areaInput.val($(this).text());
+        $suggestionsList.hide();
+        // Optional: Remove validation error if present
+        $areaInput.removeClass('is-invalid');
+    });
+
+    // Hide suggestions when clicking outside
+    $(document).on('click', function(e) {
+        // Check if the click is outside the input and the suggestions list
+        if (!$areaInput.is(e.target) && $suggestionsList.has(e.target).length === 0) {
+            $suggestionsList.hide();
+        }
+    });
+
+     // Hide suggestions on input blur if not clicking a suggestion
+    $areaInput.on('blur', function() {
+        // Delay hiding to allow click event on suggestions to register
+        setTimeout(function() {
+            if (!$('#suggestions').is(':hover')) { // Check if mouse is over suggestions
+                 $suggestionsList.hide();
+            }
+        }, 150);
+    });
+});
+</script>
+{% endblock extra_js %}
