@@ -203,13 +203,27 @@ def init_view(request):
         # Get original input for possible "search instead" option
         original_input = request.POST.get('area', '')
         
+        # Check if we should skip the correction (from "Search instead for" link)
+        skip_correction = request.POST.get('skip_correction') == 'true'
+        
+        # Debug output
+        print(f"POST request with area: '{original_input}', skip_correction: {skip_correction}")
+        
         # Normalize the area name from the form
         area_name = normalize_area_name(original_input)
+        print(f"Normalized area name: '{area_name}'")
         
         if not area_name:
             messages.error(request, "Area name cannot be empty.")
             return redirect('enter_area') # Redirect back to the init page
         
+        # If we're coming from "Search instead for", skip all correction
+        if skip_correction:
+            # Just create the area with the original name
+            area, created = Area.objects.get_or_create(name=area_name)
+            print(f"Skip correction flag detected. Created area: '{area.name}', created new: {created}")
+            return redirect(f'/{area_name}/')
+            
         # Check for exact match first
         try:
             area = Area.objects.get(name=area_name)
@@ -230,18 +244,15 @@ def init_view(request):
                     # High confidence - auto-correct and indicate we did
                     request.session['auto_corrected'] = True
                     request.session['suggestion_only'] = False
-                else:
-                    # Low confidence - still go to original search but suggest alternative
-                    request.session['auto_corrected'] = False
-                    request.session['suggestion_only'] = True
-                
-                if confidence == 'high':
-                    # For high confidence matches, redirect to the similar area
+                    # Redirect to the similar area
                     return redirect(f'/{similar_area.name}/')
                 else:
-                    # For low confidence, create the area with original name but suggest alternative
-                    area = Area.objects.create(name=area_name)
-                    return redirect(f'/{area_name}/')
+                    # Low confidence - show "Did you mean" on the results page
+                    # but DON'T create the typo area yet
+                    request.session['auto_corrected'] = False
+                    request.session['suggestion_only'] = True
+                    # Use the similar area's content temporarily
+                    return redirect(f'/{similar_area.name}/')
             else:
                 # If no similar area found, create a new one
                 area = Area.objects.create(name=area_name)
