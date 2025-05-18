@@ -17,6 +17,7 @@ from datetime import timedelta
 from django.template import loader
 import os
 import re # Import regular expressions for cleaning
+from difflib import SequenceMatcher # Import for string similarity
 
 # A simple list of common English stop words. You could expand this.
 STOP_WORDS = set([
@@ -34,6 +35,45 @@ def normalize_area_name(name):
     name = name.lower().strip()
     name = re.sub(r'\s+', ' ', name) # Replace multiple spaces with single space
     return name
+
+def find_similar_area(input_name):
+    """Find the most similar area name in the database using string similarity."""
+    if not input_name:
+        return None
+    
+    normalized_input = normalize_area_name(input_name)
+    
+    # First try an exact match
+    try:
+        exact_match = Area.objects.get(name=normalized_input)
+        return None  # No correction needed if exact match
+    except Area.DoesNotExist:
+        pass
+    
+    # If no exact match, find similar areas
+    all_areas = Area.objects.all()
+    best_match = None
+    highest_ratio = 0.0
+    
+    # Lower similarity thresholds
+    high_confidence_threshold = 0.7
+    suggestion_threshold = 0.4
+    
+    for area in all_areas:
+        similarity_ratio = SequenceMatcher(None, normalized_input, area.name).ratio()
+        if similarity_ratio > highest_ratio and similarity_ratio >= suggestion_threshold:
+            highest_ratio = similarity_ratio
+            best_match = area
+    
+    if best_match and highest_ratio >= high_confidence_threshold:
+        # High confidence match - autocorrect
+        return {'area': best_match, 'confidence': 'high'}
+    elif best_match:
+        # Lower confidence match - suggest but don't autocorrect
+        return {'area': best_match, 'confidence': 'low'}
+    else:
+        # No good match found
+        return None
 
 def run_gemini(text):
     try:
@@ -160,13 +200,52 @@ def fetch_cover_image(query, category=None):
 
 def init_view(request):
     if request.method == 'POST':
+        # Get original input for possible "search instead" option
+        original_input = request.POST.get('area', '')
+        
         # Normalize the area name from the form
-        area_name = normalize_area_name(request.POST.get('area'))
+        area_name = normalize_area_name(original_input)
+        
         if not area_name:
             messages.error(request, "Area name cannot be empty.")
             return redirect('enter_area') # Redirect back to the init page
-        area, _ = Area.objects.get_or_create(name=area_name)
-        return redirect(f'/{area_name}/')
+        
+        # Check for exact match first
+        try:
+            area = Area.objects.get(name=area_name)
+            return redirect(f'/{area_name}/')
+        except Area.DoesNotExist:
+            # If no exact match, look for similar area
+            similar_result = find_similar_area(area_name)
+            
+            if similar_result:
+                similar_area = similar_result['area']
+                confidence = similar_result['confidence']
+                
+                # Store info in session for display
+                request.session['original_query'] = original_input
+                request.session['corrected_query'] = similar_area.name
+                
+                if confidence == 'high':
+                    # High confidence - auto-correct and indicate we did
+                    request.session['auto_corrected'] = True
+                    request.session['suggestion_only'] = False
+                else:
+                    # Low confidence - still go to original search but suggest alternative
+                    request.session['auto_corrected'] = False
+                    request.session['suggestion_only'] = True
+                
+                if confidence == 'high':
+                    # For high confidence matches, redirect to the similar area
+                    return redirect(f'/{similar_area.name}/')
+                else:
+                    # For low confidence, create the area with original name but suggest alternative
+                    area = Area.objects.create(name=area_name)
+                    return redirect(f'/{area_name}/')
+            else:
+                # If no similar area found, create a new one
+                area = Area.objects.create(name=area_name)
+                return redirect(f'/{area_name}/')
    
     # Get the top areas based on the SUM of visits of their associated non-article URLModels
     top_areas = Area.objects.annotate(
@@ -473,9 +552,19 @@ def articles_by_area(request, area_name):
     # Get articles for this area using the reverse relationship
     articles = area.articles.all().order_by('-created_at') # type: ignore
     
+    # Check if this was an auto-corrected search or suggestion
+    auto_corrected = request.session.pop('auto_corrected', False)
+    suggestion_only = request.session.pop('suggestion_only', False)
+    original_query = request.session.pop('original_query', None)
+    corrected_query = request.session.pop('corrected_query', None)
+    
     context = {
         'area': area,
         'articles': articles,
+        'auto_corrected': auto_corrected,
+        'suggestion_only': suggestion_only,
+        'original_query': original_query,
+        'corrected_query': corrected_query,
     }
     return render(request, 'news.html', context)
 

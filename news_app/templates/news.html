@@ -165,10 +165,42 @@
             font-size: 1.5rem;
         }
     }
+
+    /* Auto-correction styles */
+    form.inline {
+        display: inline;
+    }
+
+    button.text-blue-600 {
+        font-size: inherit;
+        font-family: inherit;
+        cursor: pointer;
+    }
 </style>
 {% endblock %}
 {% block content %}
 <div class="container">
+    {% if auto_corrected and original_query and corrected_query %}
+    <div class="auto-correction bg-blue-50 border border-blue-200 p-3 rounded-md mb-4">
+        <p class="mb-1">
+            Showing results for <strong>{{ corrected_query|title }}</strong>
+        </p>
+        <p class="text-sm">
+            <form action="{% url 'enter_area' %}" method="POST" class="inline">
+                {% csrf_token %}
+                <input type="hidden" name="area" value="{{ original_query }}">
+                <button type="submit" class="text-blue-600 hover:underline bg-transparent border-0 p-0">Search instead for "{{ original_query }}"</button>
+            </form>
+        </p>
+    </div>
+    {% elif suggestion_only and original_query and corrected_query %}
+    <div class="auto-correction bg-blue-50 border border-blue-200 p-3 rounded-md mb-4">
+        <p class="mb-1">
+            Did you mean: <a href="/{{ corrected_query }}/" class="text-blue-600 hover:underline"><strong>{{ corrected_query|title }}</strong></a>?
+        </p>
+    </div>
+    {% endif %}
+    
     {% if articles %}
         <!-- Featured News Section -->
         <section class="featured-news">
