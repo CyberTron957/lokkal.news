@@ -13,11 +13,17 @@ from django.http import JsonResponse, HttpResponse
 from django.db.models import Count, Q, Sum
 from django.urls import resolve
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, datetime
 from django.template import loader
 import os
 import re # Import regular expressions for cleaning
 from difflib import SequenceMatcher # Import for string similarity
+from newsapi import NewsApiClient # Import NewsAPI client
+
+# Initialize NewsAPI client with your API key
+# You should move this to settings.py in a production environment
+NEWS_API_KEY = "949f016e2336407da446376d382c1ae9"  # Free tier API key
+newsapi = NewsApiClient(api_key=NEWS_API_KEY)
 
 # A simple list of common English stop words. You could expand this.
 STOP_WORDS = set([
@@ -555,6 +561,51 @@ def generate_news(request):
     # Handle GET request (optional, maybe redirect or show a form)
     return redirect('/') # Or wherever appropriate for a GET request
 
+def fetch_news_for_area(area_name):
+    """Fetch news articles for the given area from NewsAPI."""
+    try:
+        print(f"Fetching news for area: {area_name}")
+        # Get news articles about the area
+        response = newsapi.get_everything(
+            q=area_name,
+            language='en',
+            sort_by='relevancy',
+            page_size=10  # Fetch up to 10 articles
+        )
+        
+        if response and response.get('status') == 'ok':
+            articles = response.get('articles', [])
+            print(f"Found {len(articles)} news articles for {area_name}")
+            
+            # Transform the API response to match our Article model structure
+            transformed_articles = []
+            for article in articles:
+                # Parse the publishedAt date string to a datetime object
+                published_date = None
+                try:
+                    if article.get('publishedAt'):
+                        published_date = datetime.strptime(article.get('publishedAt'), '%Y-%m-%dT%H:%M:%SZ')
+                except Exception as e:
+                    print(f"Error parsing date: {e}")
+                    published_date = timezone.now()  # Use current time as fallback
+                
+                transformed_articles.append({
+                    'title': article.get('title'),
+                    'content': article.get('description', '') + '\n\n' + (article.get('content') or ''),
+                    'cover_image': article.get('urlToImage'),
+                    'created_at': published_date,  # Now a datetime object
+                    'source': article.get('source', {}).get('name'),
+                    'url': article.get('url'),
+                    'is_external': True  # Flag to indicate this is from external source
+                })
+            return transformed_articles
+        else:
+            print(f"Failed to get news for {area_name}, status: {response.get('status')}")
+            return []
+    except Exception as e:
+        print(f"Error fetching news for {area_name}: {e}")
+        return []
+
 def articles_by_area(request, area_name):
     # Normalize area name from URL
     normalized_area_name = normalize_area_name(area_name)
@@ -569,9 +620,16 @@ def articles_by_area(request, area_name):
     original_query = request.session.pop('original_query', None)
     corrected_query = request.session.pop('corrected_query', None)
     
+    external_articles = []
+    
+    # If no local articles exist, fetch some from NewsAPI
+    if not articles.exists():
+        external_articles = fetch_news_for_area(area.name)
+    
     context = {
         'area': area,
         'articles': articles,
+        'external_articles': external_articles,
         'auto_corrected': auto_corrected,
         'suggestion_only': suggestion_only,
         'original_query': original_query,

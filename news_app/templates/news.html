@@ -238,6 +238,57 @@
                 </article>
             {% endfor %}
         </section>
+    {% elif external_articles %}
+        <!-- External News Banner -->
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-md">
+            <p class="text-blue-700">
+                No local news generated yet for {{ area.name|title }}. Showing news from around the web.
+            </p>
+            <p class="text-sm text-blue-600 mt-2">
+                <a href="{% url 'post-create' %}?area={{ area.name }}" class="hover:underline">Start the conversation! Create a post to generate local news.</a>
+            </p>
+        </div>
+        
+        <!-- External Featured News Section -->
+        <section class="featured-news">
+            {% with featured_article=external_articles.0 %}
+                {% if featured_article %}
+                <article class="featured-article">
+                    <img src="{{ featured_article.cover_image|default:'https://placehold.co/1200x630?text=No+Image' }}" alt="Featured News">
+                    <div class="content">
+                        <span class="category">{{ featured_article.source|default:'News' }}</span>
+                        <h2><a href="{{ featured_article.url }}" target="_blank" rel="noopener">{{ featured_article.title }}</a></h2>
+                        <p class="timestamp">
+                            {% if featured_article.created_at %}
+                                {{ featured_article.created_at|timesince }} ago 
+                            {% endif %}
+                            <span class="ml-2 text-white bg-blue-500 px-2 py-0.5 text-xs rounded-full">External Source</span>
+                        </p>
+                    </div>
+                </article>
+                {% endif %}
+            {% endwith %}
+        </section>
+        
+        <!-- External News Grid Section -->
+        <section class="news-grid">
+            {% for article in external_articles|slice:"1:" %}
+                <article class="news-card">
+                    <img src="{{ article.cover_image|default:'https://placehold.co/600x400?text=No+Image' }}" alt="{{ article.title }}">
+                    <div class="content">
+                        <span class="category">{{ article.source|default:'News' }}</span>
+                        <h3><a href="{{ article.url }}" target="_blank" rel="noopener">{{ article.title }}</a></h3>
+                        <p class="text-sm text-gray-600 mt-1">{{ article.content|truncatechars:120 }}</p>
+                        <p class="timestamp">
+                            {% if article.created_at %}
+                                {{ article.created_at|timesince }} ago
+                            {% endif %}
+                            <span class="ml-2 text-blue-600 text-xs">External</span>
+                        </p>
+                    </div>
+                </article>
+            {% endfor %}
+        </section>
     {% else %}
         <p style="font-size: 3rem; color: #333; font-family: 'Arial', sans-serif; text-align: center; margin-top:4rem">Nothing to see here!</p>
         <p style="font-size: 1.2rem; color: #333; font-family: 'Arial', sans-serif; text-align: center;margin-top:2rem" >No news generated for this area yet.
