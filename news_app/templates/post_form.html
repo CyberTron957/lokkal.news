@@ -3,33 +3,72 @@
 <style>
     .custom-textarea {
         width: 100%;
-        min-height: 100px;
-        max-height: 150px;
-        padding: 0.5rem;
-        border: 1px solid #ced4da;
-        border-radius: 0.25rem;
-        font-size: 0.9rem;
+        min-height: 150px;
+        padding: 1rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        font-size: 1rem;
         resize: vertical;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) inset;
     }
 
     .custom-textarea:focus {
-        border-color: #86b7fe;
+        border-color: #4F46E5;
         outline: 0;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+
+    .form-control {
+        padding: 0.75rem 1rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        border-color: #4F46E5;
+        outline: 0;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
     }
 
     .btn-submit {
-        background-color: #0d6efd;
+        background-color: #4F46E5;
         color: white;
-        font-weight: bold;
-        padding: 0.75rem 1.5rem;
-        font-size: 1.1rem;
+        font-weight: 600;
+        padding: 0.875rem 2rem;
+        font-size: 1rem;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .btn-submit:hover {
+        background-color: #4338CA;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
     }
 
     .btn-cancel {
-        background-color: #6c757d;
-        color: white;
-        font-weight: normal;
+        background-color: #f3f4f6;
+        color: #4B5563;
+        font-weight: 500;
+        padding: 0.875rem 1.5rem;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-cancel:hover {
+        background-color: #e5e7eb;
+        color: #1F2937;
     }
 
     .spinner-border {
@@ -50,7 +89,7 @@
         display: none;
         color: #dc3545;
         font-size: 0.875rem;
-        margin-top: 0.25rem;
+        margin-top: 0.5rem;
     }
 
     .is-invalid {
@@ -67,12 +106,14 @@
         left: 50%;
         transform: translate(-50%, -50%);
         background: white;
-        padding: 2rem;
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        padding: 2.5rem;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         z-index: 1050;
         text-align: center;
         display: none;
+        max-width: 90%;
+        width: 400px;
     }
 
     .modal-overlay {
@@ -81,64 +122,118 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(3px);
         z-index: 1040;
         display: none;
     }
 
     .success-check {
-        color: #28a745;
-        font-size: 3rem;
-        margin-bottom: 1rem;
+        color: #10B981;
+        font-size: 3.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: center;
     }
 
     .back-to-area-btn {
-        background-color: #0d6efd;
+        background-color: #4F46E5;
         color: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.375rem;
+        padding: 0.875rem 2rem;
+        border-radius: 12px;
         border: none;
-        font-weight: bold;
+        font-weight: 600;
         cursor: pointer;
-        margin-top: 1rem;
+        margin-top: 1.5rem;
+        transition: all 0.3s ease;
+        width: 100%;
     }
 
     .back-to-area-btn:hover {
-        background-color: #0b5ed7;
+        background-color: #4338CA;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
     }
 
     /* Styles for Autocomplete Suggestions */
     .suggestions-container {
-        position: relative; /* Needed for absolute positioning of suggestions */
+        position: relative;
     }
 
     #suggestions {
         position: absolute;
         background-color: white;
-        border: 1px solid #ced4da;
+        border: 1px solid #e0e0e0;
         border-top: none;
-        border-radius: 0 0 0.25rem 0.25rem;
-        width: 100%; /* Match input width */
-        max-height: 150px; /* Limit height */
-        overflow-y: auto; /* Add scroll if needed */
-        z-index: 1000; /* Ensure it's above other elements */
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-        list-style: none; /* Remove default list styling */
+        border-radius: 0 0 12px 12px;
+        width: 100%;
+        max-height: 180px;
+        overflow-y: auto;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        list-style: none;
         padding: 0;
         margin: 0;
-        display: none; /* Hidden by default */
+        display: none;
     }
 
     #suggestions li {
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1rem;
         cursor: pointer;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
+        border-bottom: 1px solid #f3f4f6;
     }
 
     #suggestions li:hover {
-        background-color: #e9ecef;
+        background-color: #f9fafb;
     }
-    /* End Autocomplete Styles */
+    #suggestions li:last-child {
+        border-bottom: none;
+    }
+    
+    /* Hint text */
+    .form-hint {
+        font-size: 0.875rem;
+        color: #6B7280;
+        margin-top: 0.5rem;
+    }
+    
+    /* Card styling */
+    .post-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+    
+    .card-header {
+        background: linear-gradient(to right, #4F46E5, #6366F1);
+        padding: 1.5rem;
+        border: none;
+    }
+    
+    .card-header h2 {
+        color: white;
+        font-weight: 600;
+        margin: 0;
+        font-size: 1.5rem;
+    }
+    
+    .card-body {
+        padding: 2rem;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 576px) {
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .btn-submit, .btn-cancel {
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -146,55 +241,68 @@
 <!-- Success Modal -->
 <div class="modal-overlay" id="modalOverlay"></div>
 <div class="success-modal" id="successModal">
-    <div class="success-check">✓</div>
-    <h3>Success!</h3>
-    <p>Your story has been submitted.</p>
+    <div class="success-check">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+        </svg>
+    </div>
+    <h3 class="mb-2">Story Submitted!</h3>
+    <p class="text-gray-600 mb-4">Your contribution will help generate local news for your community.</p>
     <button class="back-to-area-btn" id="backToAreaBtn">
         Back to Your Area
     </button>
 </div>
 
-<div class="container py-3 py-sm-5">
+<div class="container py-4 py-sm-5">
     <div class="row justify-content-center">
-        <div class="col-12 col-sm-10 col-md-8 col-lg-6">
-            <div class="card shadow-lg border-0 rounded-lg">
-                <div class="card-body p-3 p-sm-4 p-md-5">
-                    <h2 class="text-center mb-4 fw-bold fs-2">Submit Your Story</h2>
-                    
+        <div class="col-12 col-sm-10 col-md-8 col-lg-7">
+            <div class="post-card">
+                <div class="card-header text-center">
+                    <h2>Share Your Story</h2>
+                </div>
+                <div class="card-body">                    
                     <form method="POST" class="needs-validation" novalidate id="storyForm">
                         {% csrf_token %}
                         
+                        <!-- Area field first - more intuitive order -->
+                        <div class="mb-4 suggestions-container">
+                            <label for="area" class="form-label">Your Area</label>
+                            <input 
+                                type="text" 
+                                name="area" 
+                                id="area" 
+                                class="form-control"
+                                value="{{ form.area.value|default:request.GET.area|default:'' }}"
+                                required
+                                autocomplete="off"
+                                placeholder="Enter your area or neighborhood"
+                            >
+                            <ul id="suggestions">
+                                {# Suggestions will be loaded here by JavaScript #}
+                            </ul>
+                            <div class="invalid-feedback">
+                                Please enter your area name.
+                            </div>
+                            <div class="form-hint">
+                                Your area name helps connect your story with your local community.
+                            </div>
+                        </div>
+                        
                         <!-- Content Textarea -->
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label for="content" class="form-label">Your Story</label>
                             <textarea 
                                 name="content" 
                                 id="content" 
                                 class="custom-textarea"
                                 required
+                                placeholder="Share what's happening in your community..."
                             >{{ form.content.value|default:'' }}</textarea>
                             <div class="invalid-feedback">
                                 Please share your story.
                             </div>
-                        </div>
-
-                        <!-- area field -->
-                        <div class="mb-3 suggestions-container">
-                            <label for="area" class="form-label">Area Name</label>
-                            <input 
-                                type="text" 
-                                name="area" 
-                                id="area" 
-                                class="form-control"
-                                value="{{ form.area.value|default:'' }}"
-                                required
-                                autocomplete="off" {# Disable browser autocomplete #}
-                            >
-                             <ul id="suggestions">
-                                {# Suggestions will be loaded here by JavaScript #}
-                            </ul>
-                            <div class="invalid-feedback">
-                                Please enter a valid area.
+                            <div class="form-hint">
+                                Your contribution helps generate news about what matters to your local community.
                             </div>
                         </div>
 
@@ -289,64 +397,47 @@ document.getElementById('storyForm').addEventListener('submit', function(e) {
 {% block extra_js %}
 <script>
 // Add Autocomplete script
-$(document).ready(function() {
-    const $areaInput = $('#area');
-    const $suggestionsList = $('#suggestions');
-
-    $areaInput.on('keyup', function() {
-        const query = $(this).val();
-        if (query.length > 1) { // Start searching after 1 character
+$(document).ready(function(){
+    $('#area').on('input', function(){
+        var query = $(this).val();
+        if (query.length >= 2) {
             $.ajax({
-                url: '/autocomplete/area/', // Ensure this URL is correct
-                data: { 'term': query },
+                url: '{% url "autocomplete_area" %}',
+                data: {
+                    'term': query
+                },
+                dataType: 'json',
                 success: function(data) {
-                    $suggestionsList.empty();
+                    $('#suggestions').empty();
                     if (data.length > 0) {
-                        data.forEach(function(item) {
-                            $suggestionsList.append(
-                                '<li class="px-4 py-2 hover:bg-gray-100 cursor-pointer">' + item + '</li>'
+                        $('#suggestions').show();
+                        data.forEach(function(item){
+                            $('#suggestions').append(
+                                '<li>' + item + '</li>'
                             );
                         });
-                        $suggestionsList.show();
+                        
+                        // Add click handler for suggestions
+                        $('#suggestions li').click(function(){
+                            $('#area').val($(this).text());
+                            $('#suggestions').hide();
+                        });
                     } else {
-                        $suggestionsList.hide();
+                        $('#suggestions').hide();
                     }
-                },
-                error: function() {
-                    console.error("Error fetching area suggestions.");
-                    $suggestionsList.hide();
                 }
             });
         } else {
-            $suggestionsList.hide();
+            $('#suggestions').hide();
         }
     });
-
-    // Handle click on suggestion item
-    $(document).on('click', '#suggestions li', function() {
-        $areaInput.val($(this).text());
-        $suggestionsList.hide();
-        // Optional: Remove validation error if present
-        $areaInput.removeClass('is-invalid');
-    });
-
+    
     // Hide suggestions when clicking outside
-    $(document).on('click', function(e) {
-        // Check if the click is outside the input and the suggestions list
-        if (!$areaInput.is(e.target) && $suggestionsList.has(e.target).length === 0) {
-            $suggestionsList.hide();
+    $(document).click(function(e) {
+        if (!$(e.target).closest('.suggestions-container').length) {
+            $('#suggestions').hide();
         }
-    });
-
-     // Hide suggestions on input blur if not clicking a suggestion
-    $areaInput.on('blur', function() {
-        // Delay hiding to allow click event on suggestions to register
-        setTimeout(function() {
-            if (!$('#suggestions').is(':hover')) { // Check if mouse is over suggestions
-                 $suggestionsList.hide();
-            }
-        }, 150);
     });
 });
 </script>
-{% endblock extra_js %}
+{% endblock %}

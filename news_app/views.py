@@ -18,12 +18,10 @@ from django.template import loader
 import os
 import re # Import regular expressions for cleaning
 from difflib import SequenceMatcher # Import for string similarity
-from newsapi import NewsApiClient # Import NewsAPI client
-
-# Initialize NewsAPI client with your API key
-# You should move this to settings.py in a production environment
-NEWS_API_KEY = "949f016e2336407da446376d382c1ae9"  # Free tier API key
-newsapi = NewsApiClient(api_key=NEWS_API_KEY)
+from gnews import GNews # Import for Google News API
+import feedparser # Ensure this is imported
+from bs4 import BeautifulSoup # Ensure this is imported
+import urllib.parse # Ensure this is imported
 
 # A simple list of common English stop words. You could expand this.
 STOP_WORDS = set([
@@ -81,7 +79,7 @@ def find_similar_area(input_name):
         # No good match found
         return None
 
-def run_gemini(text):
+def run_gemini(text, area_name):
     try:
         schema = {
             "type": "object",
@@ -102,17 +100,18 @@ def run_gemini(text):
             "required": ["articles"]
         }
 
-        model = genai.GenerativeModel(
+        model = genai.GenerativeModel( # type: ignore
             'gemini-2.0-flash',
             generation_config={"response_mime_type": "application/json",
                                "response_schema": schema}
         )
 
-        response = model.generate_content(f"Based on the diverse comments collected from individuals in my area, please create a series of long engaging news articles that effectively group similar topics and themes. Here are the comments: {text}")
+        prompt = f"Based on the diverse comments collected from individuals in the area of {area_name}, please create a series of long engaging news articles. Each article should effectively group similar topics and themes. Ensure article titles prominently features the area name: '{area_name}'. Here are the comments: {text}"
+        response = model.generate_content(prompt)
         parsed_data = json.loads(response.text)
         return parsed_data['articles']
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error in run_gemini: {e}")
         return []
 
 def generate_article_qs(article):
@@ -130,17 +129,17 @@ def generate_article_qs(article):
             "required": ["questions"]
         }
 
-        model = genai.GenerativeModel(
+        model = genai.GenerativeModel( # type: ignore
             'gemini-1.5-flash',
             generation_config={"response_mime_type": "application/json",
                                "response_schema": schema}
         )
 
-        response = model.generate_content(f"As an AI tasked with enhancing community engagement, please generate 3  insightful very short questions based on the following article. These questions should encourage readers to share their own experiences or provide additional comments that could enrich the article: Title: {article.title}. Content: {article.content}")
+        response = model.generate_content(f"As an AI tasked with enhancing community engagement, please generate 3  insightful very short questions ( under 10 words) based on the following article. These questions should encourage readers to share their own experiences or provide additional comments that could enrich the article: Title: {article.title}. Content: {article.content}")
         parsed_data = json.loads(response.text)
         return parsed_data['questions']
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error in generate_article_qs: {e}")
         return []
 
 def fetch_cover_image(query, category=None):
@@ -206,62 +205,67 @@ def fetch_cover_image(query, category=None):
 
 def init_view(request):
     if request.method == 'POST':
-        # Get original input for possible "search instead" option
         original_input = request.POST.get('area', '')
-        
-        # Check if we should skip the correction (from "Search instead for" link)
         skip_correction = request.POST.get('skip_correction') == 'true'
         
-        # Debug output
         print(f"POST request with area: '{original_input}', skip_correction: {skip_correction}")
-        
-        # Normalize the area name from the form
         area_name = normalize_area_name(original_input)
         print(f"Normalized area name: '{area_name}'")
         
         if not area_name:
             messages.error(request, "Area name cannot be empty.")
-            return redirect('enter_area') # Redirect back to the init page
-        
-        # If we're coming from "Search instead for", skip all correction
+            return redirect('enter_area')
+
         if skip_correction:
-            # Just create the area with the original name
             area, created = Area.objects.get_or_create(name=area_name)
-            print(f"Skip correction flag detected. Created area: '{area.name}', created new: {created}")
+            print(f"Skip correction. Area: '{area.name}', Created: {created}")
+            # Clear any correction session variables if user explicitly searched
+            request.session.pop('auto_corrected', None)
+            request.session.pop('suggestion_only', None)
+            request.session.pop('original_query', None)
+            request.session.pop('corrected_query', None)
             return redirect(f'/{area_name}/')
             
-        # Check for exact match first
         try:
             area = Area.objects.get(name=area_name)
+            # Clear any correction session variables if exact match found
+            request.session.pop('auto_corrected', None)
+            request.session.pop('suggestion_only', None)
+            request.session.pop('original_query', None)
+            request.session.pop('corrected_query', None)
             return redirect(f'/{area_name}/')
         except Area.DoesNotExist:
-            # If no exact match, look for similar area
             similar_result = find_similar_area(area_name)
             
             if similar_result:
-                similar_area = similar_result['area']
+                similar_area_obj = similar_result['area']
                 confidence = similar_result['confidence']
                 
-                # Store info in session for display
-                request.session['original_query'] = original_input
-                request.session['corrected_query'] = similar_area.name
-                
+                request.session['original_query'] = original_input # The actual user input
+                request.session['corrected_query'] = similar_area_obj.name # The suggestion
+
                 if confidence == 'high':
-                    # High confidence - auto-correct and indicate we did
                     request.session['auto_corrected'] = True
                     request.session['suggestion_only'] = False
-                    # Redirect to the similar area
-                    return redirect(f'/{similar_area.name}/')
-                else:
-                    # Low confidence - show "Did you mean" on the results page
-                    # but DON'T create the typo area yet
+                    print(f"High confidence. Redirecting to suggested: '{similar_area_obj.name}' for input '{original_input}'")
+                    return redirect(f'/{similar_area_obj.name}/')
+                else: # Low confidence (suggestion_only)
                     request.session['auto_corrected'] = False
                     request.session['suggestion_only'] = True
-                    # Use the similar area's content temporarily
-                    return redirect(f'/{similar_area.name}/')
+                    # Create the originally searched (potentially typo) area if it doesn't exist
+                    # This ensures the user lands on the page they typed, with a suggestion.
+                    area, created = Area.objects.get_or_create(name=area_name) 
+                    print(f"Low confidence. User searched for '{area_name}' (created: {created}), suggesting '{similar_area_obj.name}'.")
+                    return redirect(f'/{area_name}/')
             else:
-                # If no similar area found, create a new one
+                # No exact match, no similar area found. Create the new area.
                 area = Area.objects.create(name=area_name)
+                print(f"No match, no suggestion. Creating new area: '{area.name}'")
+                # Clear any correction session variables
+                request.session.pop('auto_corrected', None)
+                request.session.pop('suggestion_only', None)
+                request.session.pop('original_query', None)
+                request.session.pop('corrected_query', None)
                 return redirect(f'/{area_name}/')
    
     # Get the top areas based on the SUM of visits of their associated non-article URLModels
@@ -275,12 +279,11 @@ def init_view(request):
     ).order_by('-total_visits')[:8] # Get top 8 areas by summed visits
     
     trending_pages_data = []
-    for area in top_areas:
-        # We use the area name directly as the path component now
+    for area_obj in top_areas:
         trending_pages_data.append({
-            'path': area.name, # Use the canonical area name for the link path
-            'visits': area.total_visits, # type: ignore
-            'name': area.name.title() # Display title-cased name
+            'path': area_obj.name,
+            'visits': area_obj.total_visits, # type: ignore
+            'name': area_obj.name.title()
         })
     
     # Debug print (can be removed or kept for monitoring)
@@ -507,7 +510,7 @@ def generate_news(request):
         # Generate articles ONLY from the new comments
         # Consider adjusting the run_gemini prompt if you want it to be aware
         # that these are *new* comments, e.g., ask it to generate updates or new topics.
-        articles_data = run_gemini(new_comments)
+        articles_data = run_gemini(new_comments, area_name)
 
         print(f"LLM generated {len(articles_data)} new articles")
 
@@ -561,50 +564,84 @@ def generate_news(request):
     # Handle GET request (optional, maybe redirect or show a form)
     return redirect('/') # Or wherever appropriate for a GET request
 
-def fetch_news_for_area(area_name):
-    """Fetch news articles for the given area from NewsAPI."""
+def fetch_external_news_via_rss(area_name, max_results=10):
+    """Get news from Google News RSS feed directly"""
     try:
-        print(f"Fetching news for area: {area_name}")
-        # Get news articles about the area
-        response = newsapi.get_everything(
-            q=area_name,
-            language='en',
-            sort_by='relevancy',
-            page_size=10  # Fetch up to 10 articles
-        )
+        query = urllib.parse.quote(f"{area_name} news") # Make query more specific
+        # Using a broader search, could also try country-specific Google News if needed
+        rss_url = f"https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en"
         
-        if response and response.get('status') == 'ok':
-            articles = response.get('articles', [])
-            print(f"Found {len(articles)} news articles for {area_name}")
+        print(f"Trying Google News RSS feed for: {area_name} with URL: {rss_url}")
+        feed = feedparser.parse(rss_url)
+        
+        articles = []
+        if not feed.entries:
+            print(f"No entries found in RSS feed for '{area_name}'. Trying broader query.")
+            query_broader = urllib.parse.quote(area_name) # Original broader query
+            rss_url_broader = f"https://news.google.com/rss/search?q={query_broader}&hl=en-US&gl=US&ceid=US:en"
+            feed = feedparser.parse(rss_url_broader)
+            if feed.entries:
+                print(f"Found entries with broader query for '{area_name}'.")
+            else:
+                print(f"Still no entries found with broader RSS query for '{area_name}'.")
+
+        for entry in feed.entries[:max_results]:
+            content = entry.get('summary', '')
+            if content:
+                soup = BeautifulSoup(content, 'html.parser')
+                content = soup.get_text()
             
-            # Transform the API response to match our Article model structure
-            transformed_articles = []
-            for article in articles:
-                # Parse the publishedAt date string to a datetime object
-                published_date = None
+            image_url = fetch_cover_image(entry.get('title', ''))
+            
+            published_time = timezone.now() # Default to now
+            if hasattr(entry, 'published_parsed') and entry.published_parsed:
                 try:
-                    if article.get('publishedAt'):
-                        published_date = datetime.strptime(article.get('publishedAt'), '%Y-%m-%dT%H:%M:%SZ')
-                except Exception as e:
-                    print(f"Error parsing date: {e}")
-                    published_date = timezone.now()  # Use current time as fallback
-                
-                transformed_articles.append({
-                    'title': article.get('title'),
-                    'content': article.get('description', '') + '\n\n' + (article.get('content') or ''),
-                    'cover_image': article.get('urlToImage'),
-                    'created_at': published_date,  # Now a datetime object
-                    'source': article.get('source', {}).get('name'),
-                    'url': article.get('url'),
-                    'is_external': True  # Flag to indicate this is from external source
-                })
-            return transformed_articles
-        else:
-            print(f"Failed to get news for {area_name}, status: {response.get('status')}")
-            return []
+                    # feedparser. δημοσιεύθηκε_parsed is a time.struct_time
+                    dt = datetime.fromtimestamp(time.mktime(entry.published_parsed))
+                    published_time = timezone.make_aware(dt) if timezone.is_naive(dt) else dt
+                except Exception as e_date:
+                    print(f"Could not parse date for article '{entry.get('title')}': {e_date}")
+            elif hasattr(entry, 'published') and entry.published:
+                 try:
+                    # Try to parse string date if struct_time not available
+                    dt = datetime.strptime(entry.published, '%a, %d %b %Y %H:%M:%S %Z') # Common RSS format
+                    published_time = timezone.make_aware(dt) if timezone.is_naive(dt) else dt
+                 except ValueError:
+                     try:
+                         dt = datetime.strptime(entry.published, '%Y-%m-%dT%H:%M:%SZ') # ISO format
+                         published_time = timezone.make_aware(dt) if timezone.is_naive(dt) else dt
+                     except ValueError as e_date_str:
+                         print(f"Could not parse string date '{entry.published}' for article '{entry.get('title')}': {e_date_str}")
+
+            article = {
+                'title': entry.get('title', ''),
+                'content': content,
+                'cover_image': image_url,
+                'created_at': published_time,
+                'category': 'Google News', # Differentiate category
+                'is_external': True,
+                'external_url': entry.get('link', '#'),
+            }
+            articles.append(article)
+        
+        print(f"Found {len(articles)} articles via Google News RSS for '{area_name}'")
+        return articles
     except Exception as e:
-        print(f"Error fetching news for {area_name}: {e}")
+        print(f"RSS feed error for {area_name}: {e}")
+        import traceback
+        traceback.print_exc()
         return []
+
+# This function now solely relies on the RSS feed method.
+def get_google_news_for_area(area_name, max_results=10):
+    """
+    Fetch news articles for the area, using Google News RSS as the source.
+    """
+    print(f"Fetching external news for '{area_name}' using RSS feed.")
+    articles = fetch_external_news_via_rss(area_name, max_results)
+    if not articles:
+        print(f"No articles found for '{area_name}' from any external source.")
+    return articles
 
 def articles_by_area(request, area_name):
     # Normalize area name from URL
@@ -612,7 +649,14 @@ def articles_by_area(request, area_name):
     area = get_object_or_404(Area, name=normalized_area_name)
     
     # Get articles for this area using the reverse relationship
-    articles = area.articles.all().order_by('-created_at') # type: ignore
+    articles = list(area.articles.all().order_by('-created_at')) # type: ignore
+    
+    # If no articles found, fetch from Google News
+    if not articles:
+        google_news_articles = get_google_news_for_area(area_name)
+        # Only use Google News if we found results
+        if google_news_articles:
+            articles = google_news_articles
     
     # Check if this was an auto-corrected search or suggestion
     auto_corrected = request.session.pop('auto_corrected', False)
@@ -620,20 +664,22 @@ def articles_by_area(request, area_name):
     original_query = request.session.pop('original_query', None)
     corrected_query = request.session.pop('corrected_query', None)
     
-    external_articles = []
-    
-    # If no local articles exist, fetch some from NewsAPI
-    if not articles.exists():
-        external_articles = fetch_news_for_area(area.name)
+    # Check if we're showing Google News (handle articles attribute safely)
+    has_local_articles = False
+    try:
+        has_local_articles = area.articles.exists() # type: ignore
+    except Exception:
+        # If there's no articles relation, consider it has no articles
+        has_local_articles = False
     
     context = {
         'area': area,
         'articles': articles,
-        'external_articles': external_articles,
         'auto_corrected': auto_corrected,
         'suggestion_only': suggestion_only,
         'original_query': original_query,
         'corrected_query': corrected_query,
+        'showing_google_news': not has_local_articles and bool(articles),
     }
     return render(request, 'news.html', context)
 
