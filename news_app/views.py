@@ -316,7 +316,7 @@ def init_view(request):
     }
     return render(request, 'init.html', context)
 
-genai.configure(api_key='AIzaSyDf2x-ENW14KrJEJZSIgY4LLnTv6ns52bQ') 
+genai.configure(api_key='AIzaSyDf2x-ENW14KrJEJZSIgY4LLnTv6ns52bQ')  # type: ignore
 
 def autocomplete_area(request):
     if 'term' in request.GET:
@@ -692,3 +692,27 @@ def article_detail_view(request, article_id):
         'article': article,
     }
     return render(request, 'article_detail.html', context)
+
+def trending_articles(request):
+    """
+    API endpoint to return trending articles for the post form sidebar
+    """
+    # Get recent articles, limited to 5
+    articles = Article.objects.all().order_by('-created_at')[:5]
+    
+    # Format the articles as JSON
+    articles_data = []
+    for article in articles:
+        article_data = {
+            'title': article.title,
+            'category': article.category,
+            'created_at': article.created_at.isoformat(),
+            'url': f'/article/{article.pk}/' if article.pk else '#',
+            'cover_image': article.cover_image,
+        }
+        if article.slug and article.area:
+            article_data['url'] = f'/{article.area.name}/{article.slug}/'
+        
+        articles_data.append(article_data)
+    
+    return JsonResponse({'articles': articles_data})

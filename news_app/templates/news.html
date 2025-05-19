@@ -250,20 +250,21 @@
     /* Updated news grid styles */
     .news-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 24px;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
         margin-bottom: 3rem;
     }
 
     .news-card {
         background: white;
-        border-radius: 16px;
+        border-radius: 10px;
         overflow: hidden;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         transition: all 0.3s ease;
         height: 100%;
         display: flex;
         flex-direction: column;
+        position: relative;
     }
 
     .news-card:hover {
@@ -278,18 +279,17 @@
     }
 
     .news-card .content {
-        padding: 1.25rem;
+        padding: 1rem;
         flex-grow: 1;
         display: flex;
         flex-direction: column;
     }
 
     .news-card h3 {
-        font-size: 1.125rem;
-        margin-bottom: 0.75rem;
+        margin-top: 0.75rem;
+        font-size: 1.1rem;
         line-height: 1.4;
         color: #111827;
-        flex-grow: 1;
     }
 
     .news-card h3 a {
@@ -306,34 +306,45 @@
     .category {
         display: inline-block;
         padding: 0.25rem 0.75rem;
-        background: linear-gradient(45deg, #ff8a00, #e52e71);
+        background: linear-gradient(90deg, #e52e71, #ff8a00);
         color: white;
-        border-radius: 9999px;
+        border-radius: 4px;
         font-size: 0.75rem;
-        font-weight: 500;
+        font-weight: 600;
         margin-bottom: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        box-shadow: 0 2px 4px rgba(229, 46, 113, 0.2);
+        position: relative;
+        z-index: 2;
     }
     
     .category.external {
-        background: linear-gradient(45deg, #ff8a00, #e52e71);
+        background: linear-gradient(90deg, #e52e71, #ff8a00);
     }
 
     .card-footer {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-top: 1rem;
+        margin-top: auto;
+        padding-top: 0.5rem;
         border-top: 1px solid rgba(0,0,0,0.05);
-        padding-top: 1rem;
     }
 
     .timestamp {
         color: #6B7280;
-        font-size: 0.875rem;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
     
+    .timestamp svg {
+        width: 12px;
+        height: 12px;
+    }
+
     .external-tag {
         display: flex;
         align-items: center;
@@ -590,6 +601,44 @@
         width: 12px;
         height: 12px;
     }
+
+    /* Adjust the category positioning on the featured articles */
+    .featured-article .category {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        margin-bottom: 0;
+        z-index: 2;
+    }
+
+    /* Update category position in news cards */
+    .news-card .category {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        margin-bottom: 0;
+        z-index: 2;
+    }
+
+    /* Add media queries to ensure responsive layout on all screens */
+    @media (max-width: 480px) {
+        .news-card {
+            max-width: 100%;
+        }
+        
+        .news-card img {
+            height: 180px;
+        }
+        
+        .category {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+        }
+        
+        .news-card h3 {
+            font-size: 1rem;
+        }
+    }
 </style>
 {% endblock %}
 {% block content %}
@@ -645,12 +694,12 @@
                 {% for article in articles|slice:":4" %}
                     <article class="featured-article" data-index="{{ forloop.counter0 }}">
                         <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                        {% if article.is_external %}
+                            <span class="category external">Google News</span>
+                        {% else %}
+                            <span class="category">Featured</span>
+                        {% endif %}
                         <div class="content">
-                            {% if article.is_external %}
-                                <span class="category external">Google News</span>
-                            {% else %}
-                                <span class="category">Featured</span>
-                            {% endif %}
                             <h2 class="text-2xl sm:text-3xl font-bold mb-2">
                                 {% if article.is_external %}
                                     <a href="{{ article.external_url }}" target="_blank" rel="noopener">
@@ -664,6 +713,10 @@
                             </h2>
                             <p class="mb-2 text-gray-200 line-clamp-2 hidden sm:block">{{ article.content|truncatechars:150 }}</p>
                             <p class="timestamp">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+                                </svg>
                                 {% if article.is_external %}
                                     {{ article.published_at|date:"jS F" }}
                                 {% else %}
@@ -687,12 +740,12 @@
             {% for article in articles|slice:"4:" %}
                 <article class="news-card">
                     <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                    {% if article.is_external %}
+                        <span class="category external">Google News</span>
+                    {% else %}
+                        <span class="category">{{ article.category }}</span>
+                    {% endif %}
                     <div class="content">
-                        {% if article.is_external %}
-                            <span class="category external">Google News</span>
-                        {% else %}
-                            <span class="category">{{ article.category }}</span>
-                        {% endif %}
                         <h3>
                             {% if article.is_external %}
                                 <a href="{{ article.external_url }}" target="_blank" rel="noopener">
@@ -706,6 +759,10 @@
                         </h3>
                         <div class="card-footer">
                             <p class="timestamp">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+                                </svg>
                                 {% if article.is_external %}
                                     {{ article.published_at|date:"jS F" }}
                                 {% else %}
