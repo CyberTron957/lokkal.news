@@ -23,6 +23,9 @@ import feedparser # Ensure this is imported
 from bs4 import BeautifulSoup # Ensure this is imported
 import urllib.parse # Ensure this is imported
 from django.core.cache import cache # Import Django's cache
+import logging
+
+logger = logging.getLogger(__name__)
 
 # A simple list of common English stop words. You could expand this.
 STOP_WORDS = set([
@@ -33,7 +36,7 @@ STOP_WORDS = set([
     "they", "this", "to", "was", "will", "with", "over", "post-oc" # Added 'over' and 'post-oc' based on example
 ])
 
-def normalize_area_name(name):
+def normalize_area_name(name: str | None) -> str:
     """Converts to lowercase, strips whitespace, and collapses internal spaces."""
     if not name:
         return ""
@@ -41,35 +44,29 @@ def normalize_area_name(name):
     name = re.sub(r'\s+', ' ', name) # Replace multiple spaces with single space
     return name
 
-def find_similar_area(input_name):
+def find_similar_area(input_name: str | None) -> dict | None:
     """Find the most similar area name in the database using string similarity."""
     if not input_name:
         return None
-    
     normalized_input = normalize_area_name(input_name)
-    
     # First try an exact match
     try:
         exact_match = Area.objects.get(name=normalized_input)
         return None  # No correction needed if exact match
     except Area.DoesNotExist:
         pass
-    
     # If no exact match, find similar areas
     all_areas = Area.objects.all()
     best_match = None
     highest_ratio = 0.0
-    
     # Lower similarity thresholds
     high_confidence_threshold = 0.7
     suggestion_threshold = 0.4
-    
     for area in all_areas:
         similarity_ratio = SequenceMatcher(None, normalized_input, area.name).ratio()
         if similarity_ratio > highest_ratio and similarity_ratio >= suggestion_threshold:
             highest_ratio = similarity_ratio
             best_match = area
-    
     if best_match and highest_ratio >= high_confidence_threshold:
         # High confidence match - autocorrect
         return {'area': best_match, 'confidence': 'high'}
@@ -117,11 +114,11 @@ def run_gemini(text, area_name, max_retries=3, retry_delay=2):
             parsed_data = json.loads(response.text)
             return parsed_data['articles']
         except Exception as e:
-            print(f"Error in run_gemini (attempt {attempt+1}/{max_retries}): {e}")
+            logger.exception(f"Error in run_gemini (attempt {attempt+1}/{max_retries}): {e}")
             attempt += 1
             if attempt < max_retries:
                 time.sleep(retry_delay)
-    print(f"run_gemini failed after {max_retries} attempts.")
+    logger.error(f"run_gemini failed after {max_retries} attempts.")
     return []
 
 def generate_article_qs(article):
@@ -149,7 +146,7 @@ def generate_article_qs(article):
         parsed_data = json.loads(response.text)
         return parsed_data['questions']
     except Exception as e:
-        print(f"Error in generate_article_qs: {e}")
+        logger.exception(f"Error in generate_article_qs: {e}")
         return []
 
 def fetch_cover_image(query, category=None):
@@ -159,7 +156,7 @@ def fetch_cover_image(query, category=None):
     Uses caching to avoid repeated API calls for the same query.
     """
     if not query:
-        print("Error: Empty query passed to fetch_cover_image.")
+        logger.error("Error: Empty query passed to fetch_cover_image.")
         return None
 
     # Clean the query: remove punctuation, convert to lowercase
@@ -180,20 +177,20 @@ def fetch_cover_image(query, category=None):
     if not keywords:
          # If all words were stop words, fall back to the first 2-3 original words
          simplified_query = " ".join(query.split()[:3])
-         print(f"No significant keywords found in '{query}'. Falling back to: '{simplified_query}'")
+         logger.info(f"No significant keywords found in '{query}'. Falling back to: '{simplified_query}'")
     else:
         simplified_query = " ".join(keywords)
-        print(f"Original query: '{query}', Category: '{category}', Keywords for search: '{simplified_query}'")
+        logger.info(f"Original query: '{query}', Category: '{category}', Keywords for search: '{simplified_query}'")
 
     # Create a cache key based on the simplified query
     cache_key = f"cover_image_cache_{urllib.parse.quote(simplified_query)}"
     cached_image_url = cache.get(cache_key)
 
     if cached_image_url:
-        print(f"  Returning cached image for '{simplified_query}': {cached_image_url}")
+        logger.info(f"  Returning cached image for '{simplified_query}': {cached_image_url}")
         return cached_image_url
 
-    print(f"  No cache hit for '{simplified_query}'. Fetching from API.")
+    logger.info(f"  No cache hit for '{simplified_query}'. Fetching from API.")
     try:
         url = f"https://api.unsplash.com/search/photos"
         client_id = os.environ.get("UNSPLASH_ACCESS_KEY", "LSOUqV2JJVVQMYMapOqQdsMKkC1_Nrmu0w45m5NHpQc") # Use your actual key or env var
@@ -209,18 +206,18 @@ def fetch_cover_image(query, category=None):
         if data.get("results"):
             image_url = data["results"][0].get("urls", {}).get("regular")
             if image_url:
-                print(f"  Successfully fetched image: {image_url}")
+                logger.info(f"  Successfully fetched image: {image_url}")
                 # Cache the result for 24 hours (86400 seconds)
                 cache.set(cache_key, image_url, timeout=86400)
                 return image_url
             else:
-                print("  No regular URL found in the first image result.")
+                logger.info("  No regular URL found in the first image result.")
         else:
-            print(f"  No image results found for query: '{simplified_query}'")
+            logger.info(f"  No image results found for query: '{simplified_query}'")
     except requests.exceptions.RequestException as e:
-        print(f"  Error fetching image from Unsplash: {e}")
+        logger.error(f"  Error fetching image from Unsplash: {e}")
     except Exception as e:
-        print(f"  An unexpected error occurred: {e}")
+        logger.exception(f"  An unexpected error occurred: {e}")
 
     # Cache a None result for a shorter period (e.g., 1 hour) to avoid hammering API for non-existent images
     cache.set(cache_key, None, timeout=3600)
@@ -232,9 +229,9 @@ def init_view(request):
         original_input = request.POST.get('area', '')
         skip_correction = request.POST.get('skip_correction') == 'true'
         
-        print(f"POST request with area: '{original_input}', skip_correction: {skip_correction}")
+        logger.info(f"POST request with area: '{original_input}', skip_correction: {skip_correction}")
         area_name = normalize_area_name(original_input)
-        print(f"Normalized area name: '{area_name}'")
+        logger.info(f"Normalized area name: '{area_name}'")
         
         if not area_name:
             messages.error(request, "Area name cannot be empty.")
@@ -242,7 +239,7 @@ def init_view(request):
 
         if skip_correction:
             area, created = Area.objects.get_or_create(name=area_name)
-            print(f"Skip correction. Area: '{area.name}', Created: {created}")
+            logger.info(f"Skip correction. Area: '{area.name}', Created: {created}")
             # Clear any correction session variables if user explicitly searched
             request.session.pop('auto_corrected', None)
             request.session.pop('suggestion_only', None)
@@ -271,7 +268,7 @@ def init_view(request):
                 if confidence == 'high':
                     request.session['auto_corrected'] = True
                     request.session['suggestion_only'] = False
-                    print(f"High confidence. Redirecting to suggested: '{similar_area_obj.name}' for input '{original_input}'")
+                    logger.info(f"High confidence. Redirecting to suggested: '{similar_area_obj.name}' for input '{original_input}'")
                     return redirect(f'/{similar_area_obj.name}/')
                 else: # Low confidence (suggestion_only)
                     request.session['auto_corrected'] = False
@@ -279,12 +276,12 @@ def init_view(request):
                     # Create the originally searched (potentially typo) area if it doesn't exist
                     # This ensures the user lands on the page they typed, with a suggestion.
                     area, created = Area.objects.get_or_create(name=area_name) 
-                    print(f"Low confidence. User searched for '{area_name}' (created: {created}), suggesting '{similar_area_obj.name}'.")
+                    logger.info(f"Low confidence. User searched for '{area_name}' (created: {created}), suggesting '{similar_area_obj.name}'.")
                     return redirect(f'/{area_name}/')
             else:
                 # No exact match, no similar area found. Create the new area.
                 area = Area.objects.create(name=area_name)
-                print(f"No match, no suggestion. Creating new area: '{area.name}'")
+                logger.info(f"No match, no suggestion. Creating new area: '{area.name}'")
                 # Clear any correction session variables
                 request.session.pop('auto_corrected', None)
                 request.session.pop('suggestion_only', None)
@@ -311,9 +308,9 @@ def init_view(request):
         })
     
     # Debug print (can be removed or kept for monitoring)
-    print(f"Found {len(trending_pages_data)} trending areas (aggregated)")
+    logger.info(f"Found {len(trending_pages_data)} trending areas (aggregated)")
     for p in trending_pages_data:
-        print(f"Area: {p['name']}, Path: {p['path']}, Total Visits: {p['visits']}")
+        logger.info(f"Area: {p['name']}, Path: {p['path']}, Total Visits: {p['visits']}")
     
     # Get trending articles - filter by article being not null
     trending_url_models = URLModel.objects.filter(
@@ -469,35 +466,33 @@ def post_create(request):
     return render(request, 'post_form.html', {'form': form})
 
 
-def get_posts_content_by_area(area_name, since=None):
+def get_posts_content_by_area(area_name: str, since=None):
     """
     Fetches the combined content of posts for a given area.
     Optionally filters posts created after a specific timestamp ('since').
     """
     try:
-        area = Area.objects.get(name=area_name.lower()) # Keep lower() here for lookup if URLs/inputs aren't normalized
+        normalized_area = normalize_area_name(area_name)
+        area = Area.objects.get(name=normalized_area)
         # Use the related name from Post.area ForeignKey
         posts_query = area.area_posts.all() # type: ignore
         if since:
-            print(f"Fetching posts for '{area_name}' created after {since}")
+            logger.info(f"Fetching posts for '{normalized_area}' created after {since}")
             posts_query = posts_query.filter(date_posted__gt=since)
         else:
-            print(f"Fetching all posts for '{area_name}' (initial generation or no 'since' date)")
-
+            logger.info(f"Fetching all posts for '{normalized_area}' (initial generation or no 'since' date)")
         posts = posts_query.order_by('date_posted') # Ensure order if needed by LLM
-
         if not posts.exists():
-            print("No posts found matching the criteria.")
+            logger.info("No posts found matching the criteria.")
             return None # Return None if no posts match
-
         all_content = '" "'.join(post.content for post in posts)
-        print(f"Found {posts.count()} posts, combined content length: {len(all_content)}")
+        logger.info(f"Found {posts.count()} posts, combined content length: {len(all_content)}")
         return all_content
     except Area.DoesNotExist:
-        print(f"Area '{area_name}' not found.")
+        logger.error(f"Area '{area_name}' not found.")
         return None
     except Exception as e:
-        print(f"Error getting posts content for '{area_name}': {e}")
+        logger.exception(f"Error getting posts content for '{area_name}': {e}")
         return None
 
 
@@ -518,28 +513,28 @@ def generate_news(request):
              # area, _ = Area.objects.get_or_create(name=area_name)
              return redirect(request.META.get('HTTP_REFERER', '/'))
 
-        print(f"Generating news for area: {area_name}")
+        logger.info(f"Generating news for area: {area_name}")
         last_gen_time = area.last_generated_at
-        print(f"Last generation time for {area_name}: {last_gen_time}")
+        logger.info(f"Last generation time for {area_name}: {last_gen_time}")
 
         # Get content of NEW posts since the last generation
         new_comments = get_posts_content_by_area(area_name, since=last_gen_time)
 
         if not new_comments:
-            print(f"No new comments found for {area_name} since {last_gen_time}. No articles generated.")
+            logger.info(f"No new comments found for {area_name} since {last_gen_time}. No articles generated.")
             messages.info(request, f"No new comments found for '{area.name.title()}'. News is up to date.")
             return redirect(f'/{area_name}/') # Redirect to the area page
 
-        print(f"Found new comments for {area_name}. Sending to LLM...")
+        logger.info(f"Found new comments for {area_name}. Sending to LLM...")
         # Generate articles ONLY from the new comments
         # Consider adjusting the run_gemini prompt if you want it to be aware
         # that these are *new* comments, e.g., ask it to generate updates or new topics.
         articles_data = run_gemini(new_comments, area_name)
 
-        print(f"LLM generated {len(articles_data)} new articles")
+        logger.info(f"LLM generated {len(articles_data)} new articles")
 
         if not articles_data:
-             print("LLM did not return any articles after retries.")
+             logger.warning("LLM did not return any articles after retries.")
              messages.warning(request, "Could not generate new articles from the latest comments. Please try again later.")
              # Do NOT update last_generated_at here, so the user can retry
              return redirect(f'/{area_name}/')
@@ -550,7 +545,7 @@ def generate_news(request):
             content = article_data.get('content')
 
             if not title or not content:
-                print("Skipping article data with missing title or content.")
+                logger.warning("Skipping article data with missing title or content.")
                 continue
 
             # Fetch cover image using the refined logic (pass category too)
@@ -570,15 +565,15 @@ def generate_news(request):
                 # area.articles.add(article)
                 newly_created_count += 1
                 # Use article.pk instead of article.id to satisfy linter
-                print(f"Created article: {article.title} (PK: {article.pk}) for Area: {area.name}")
+                logger.info(f"Created article: {article.title} (PK: {article.pk}) for Area: {area.name}")
             except Exception as e:
-                 print(f"Error creating article '{title}': {e}")
+                 logger.exception(f"Error creating article '{title}': {e}")
 
         if newly_created_count > 0:
             # Update the last generated timestamp for the area AFTER processing
             area.last_generated_at = timezone.now()
             area.save(update_fields=['last_generated_at'])
-            print(f"Updated last_generated_at for {area_name} to {area.last_generated_at}")
+            logger.info(f"Updated last_generated_at for {area_name} to {area.last_generated_at}")
 
         messages.success(request, f"Successfully generated {newly_created_count} new articles for '{area.name.title()}'.")
         return redirect(f'/{area_name}/')
@@ -594,28 +589,28 @@ def fetch_external_news_via_rss(area_name, max_results=10):
     cached_articles = cache.get(cache_key)
 
     if cached_articles is not None: # Check for None explicitly, as an empty list is a valid cached result
-        print(f"Returning cached RSS news for '{area_name}' (normalized: '{normalized_area_name_for_cache}', max_results={max_results})")
+        logger.info(f"Returning cached RSS news for '{area_name}' (normalized: '{normalized_area_name_for_cache}', max_results={max_results})")
         return cached_articles
 
-    print(f"No cache hit for RSS news: '{area_name}' (normalized: '{normalized_area_name_for_cache}'). Fetching from source.")
+    logger.info(f"No cache hit for RSS news: '{area_name}' (normalized: '{normalized_area_name_for_cache}'). Fetching from source.")
     articles_to_cache = [] # Initialize with an empty list
     try:
         # Use normalized_area_name_for_cache for the query as well for consistency
         query = urllib.parse.quote(f"{normalized_area_name_for_cache} news") 
         rss_url = f"https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en"
         
-        print(f"Trying Google News RSS feed for: {normalized_area_name_for_cache} with URL: {rss_url}")
+        logger.info(f"Trying Google News RSS feed for: {normalized_area_name_for_cache} with URL: {rss_url}")
         feed = feedparser.parse(rss_url)
         
         if not feed.entries:
-            print(f"No entries found in RSS feed for '{normalized_area_name_for_cache}'. Trying broader query.")
+            logger.info(f"No entries found in RSS feed for '{normalized_area_name_for_cache}'. Trying broader query.")
             query_broader = urllib.parse.quote(normalized_area_name_for_cache) 
             rss_url_broader = f"https://news.google.com/rss/search?q={query_broader}&hl=en-US&gl=US&ceid=US:en"
             feed = feedparser.parse(rss_url_broader)
             if feed.entries:
-                print(f"Found entries with broader query for '{normalized_area_name_for_cache}'.")
+                logger.info(f"Found entries with broader query for '{normalized_area_name_for_cache}'.")
             else:
-                print(f"Still no entries found with broader RSS query for '{normalized_area_name_for_cache}'.")
+                logger.info(f"Still no entries found with broader RSS query for '{normalized_area_name_for_cache}'.")
 
         for entry in feed.entries[:max_results]:
             content = entry.get('summary', '')
@@ -631,7 +626,7 @@ def fetch_external_news_via_rss(area_name, max_results=10):
                     dt = datetime.fromtimestamp(time.mktime(entry.published_parsed))
                     published_time = timezone.make_aware(dt) if timezone.is_naive(dt) else dt
                 except Exception as e_date:
-                    print(f"Could not parse date for article '{entry.get('title')}': {e_date}")
+                    logger.exception(f"Could not parse date for article '{entry.get('title')}': {e_date}")
             elif hasattr(entry, 'published') and entry.published:
                  try:
                     dt = datetime.strptime(entry.published, '%a, %d %b %Y %H:%M:%S %Z')
@@ -641,7 +636,7 @@ def fetch_external_news_via_rss(area_name, max_results=10):
                          dt = datetime.strptime(entry.published, '%Y-%m-%dT%H:%M:%SZ')
                          published_time = timezone.make_aware(dt) if timezone.is_naive(dt) else dt
                      except ValueError as e_date_str:
-                         print(f"Could not parse string date '{entry.published}' for article '{entry.get('title')}': {e_date_str}")
+                         logger.exception(f"Could not parse string date '{entry.published}' for article '{entry.get('title')}': {e_date_str}")
 
             article_data = {
                 'title': entry.get('title', ''),
@@ -654,12 +649,12 @@ def fetch_external_news_via_rss(area_name, max_results=10):
             }
             articles_to_cache.append(article_data)
         
-        print(f"Found {len(articles_to_cache)} articles via Google News RSS for '{normalized_area_name_for_cache}'")
+        logger.info(f"Found {len(articles_to_cache)} articles via Google News RSS for '{normalized_area_name_for_cache}'")
         # Cache for 1 hour (3600 seconds)
         cache.set(cache_key, articles_to_cache, timeout=3600)
         return articles_to_cache
     except Exception as e:
-        print(f"RSS feed error for {area_name} (normalized: {normalized_area_name_for_cache}): {e}")
+        logger.exception(f"RSS feed error for {area_name} (normalized: {normalized_area_name_for_cache}): {e}")
         import traceback
         traceback.print_exc()
         # Cache an empty list for a shorter period (e.g., 15 mins) on error to avoid hammering
@@ -671,10 +666,10 @@ def get_google_news_for_area(area_name, max_results=10):
     """
     Fetch news articles for the area, using Google News RSS as the source.
     """
-    print(f"Fetching external news for '{area_name}' using RSS feed.")
+    logger.info(f"Fetching external news for '{area_name}' using RSS feed.")
     articles = fetch_external_news_via_rss(area_name, max_results)
     if not articles:
-        print(f"No articles found for '{area_name}' from any external source.")
+        logger.info(f"No articles found for '{area_name}' from any external source.")
     return articles
 
 def articles_by_area(request, area_name):
