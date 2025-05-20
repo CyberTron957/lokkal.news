@@ -22,6 +22,7 @@ from gnews import GNews # Import for Google News API
 import feedparser # Ensure this is imported
 from bs4 import BeautifulSoup # Ensure this is imported
 import urllib.parse # Ensure this is imported
+from django.core.cache import cache # Import Django's cache
 
 # A simple list of common English stop words. You could expand this.
 STOP_WORDS = set([
@@ -79,40 +80,49 @@ def find_similar_area(input_name):
         # No good match found
         return None
 
-def run_gemini(text, area_name):
-    try:
-        schema = {
-            "type": "object",
-            "properties": {
-                "articles": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "title": {"type": "string"},
-                            "content": {"type": "string"},
-                            "category": {"type": "string"}
-                        },
-                        "required": ["title", "content"]
+def run_gemini(text, area_name, max_retries=3, retry_delay=2):
+    """
+    Generate articles using Gemini API with retry logic for error recovery.
+    """
+    attempt = 0
+    while attempt < max_retries:
+        try:
+            schema = {
+                "type": "object",
+                "properties": {
+                    "articles": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "title": {"type": "string"},
+                                "content": {"type": "string"},
+                                "category": {"type": "string"}
+                            },
+                            "required": ["title", "content"]
+                        }
                     }
-                }
-            },
-            "required": ["articles"]
-        }
+                },
+                "required": ["articles"]
+            }
 
-        model = genai.GenerativeModel( # type: ignore
-            'gemini-2.0-flash',
-            generation_config={"response_mime_type": "application/json",
-                               "response_schema": schema}
-        )
+            model = genai.GenerativeModel( # type: ignore
+                'gemini-2.0-flash',
+                generation_config={"response_mime_type": "application/json",
+                                   "response_schema": schema}
+            )
 
-        prompt = f"Based on the diverse comments collected from individuals in the area of {area_name}, please create a series of long engaging news articles. Each article should effectively group similar topics and themes. Ensure article titles prominently features the area name: '{area_name}'. Here are the comments: {text}"
-        response = model.generate_content(prompt)
-        parsed_data = json.loads(response.text)
-        return parsed_data['articles']
-    except Exception as e:
-        print(f"Error in run_gemini: {e}")
-        return []
+            prompt = f"Based on the diverse comments collected from individuals in the area of {area_name}, please create a series of long engaging news articles. Each article should effectively group similar topics and themes. Ensure article titles prominently features the area name: '{area_name}'. Here are the comments: {text}"
+            response = model.generate_content(prompt)
+            parsed_data = json.loads(response.text)
+            return parsed_data['articles']
+        except Exception as e:
+            print(f"Error in run_gemini (attempt {attempt+1}/{max_retries}): {e}")
+            attempt += 1
+            if attempt < max_retries:
+                time.sleep(retry_delay)
+    print(f"run_gemini failed after {max_retries} attempts.")
+    return []
 
 def generate_article_qs(article):
     try:
@@ -146,6 +156,7 @@ def fetch_cover_image(query, category=None):
     """
     Fetches a cover image from Unsplash based on a query and optional category.
     Filters stop words from the query for better relevance.
+    Uses caching to avoid repeated API calls for the same query.
     """
     if not query:
         print("Error: Empty query passed to fetch_cover_image.")
@@ -174,6 +185,15 @@ def fetch_cover_image(query, category=None):
         simplified_query = " ".join(keywords)
         print(f"Original query: '{query}', Category: '{category}', Keywords for search: '{simplified_query}'")
 
+    # Create a cache key based on the simplified query
+    cache_key = f"cover_image_cache_{urllib.parse.quote(simplified_query)}"
+    cached_image_url = cache.get(cache_key)
+
+    if cached_image_url:
+        print(f"  Returning cached image for '{simplified_query}': {cached_image_url}")
+        return cached_image_url
+
+    print(f"  No cache hit for '{simplified_query}'. Fetching from API.")
     try:
         url = f"https://api.unsplash.com/search/photos"
         client_id = os.environ.get("UNSPLASH_ACCESS_KEY", "LSOUqV2JJVVQMYMapOqQdsMKkC1_Nrmu0w45m5NHpQc") # Use your actual key or env var
@@ -190,6 +210,8 @@ def fetch_cover_image(query, category=None):
             image_url = data["results"][0].get("urls", {}).get("regular")
             if image_url:
                 print(f"  Successfully fetched image: {image_url}")
+                # Cache the result for 24 hours (86400 seconds)
+                cache.set(cache_key, image_url, timeout=86400)
                 return image_url
             else:
                 print("  No regular URL found in the first image result.")
@@ -200,6 +222,8 @@ def fetch_cover_image(query, category=None):
     except Exception as e:
         print(f"  An unexpected error occurred: {e}")
 
+    # Cache a None result for a shorter period (e.g., 1 hour) to avoid hammering API for non-existent images
+    cache.set(cache_key, None, timeout=3600)
     return None # Return None if anything goes wrong or no image is found
 
 
@@ -515,11 +539,9 @@ def generate_news(request):
         print(f"LLM generated {len(articles_data)} new articles")
 
         if not articles_data:
-             print("LLM did not return any articles.")
-             messages.warning(request, "Could not generate new articles from the latest comments.")
-             # Update timestamp even if no articles generated to avoid reprocessing same comments
-             area.last_generated_at = timezone.now()
-             area.save(update_fields=['last_generated_at'])
+             print("LLM did not return any articles after retries.")
+             messages.warning(request, "Could not generate new articles from the latest comments. Please try again later.")
+             # Do NOT update last_generated_at here, so the user can retry
              return redirect(f'/{area_name}/')
 
         newly_created_count = 0
@@ -565,25 +587,35 @@ def generate_news(request):
     return redirect('/') # Or wherever appropriate for a GET request
 
 def fetch_external_news_via_rss(area_name, max_results=10):
-    """Get news from Google News RSS feed directly"""
+    """Get news from Google News RSS feed directly, with caching."""
+    # Normalize area_name for cache key consistency
+    normalized_area_name_for_cache = normalize_area_name(area_name)
+    cache_key = f"external_news_rss_{urllib.parse.quote(normalized_area_name_for_cache)}_{max_results}"
+    cached_articles = cache.get(cache_key)
+
+    if cached_articles is not None: # Check for None explicitly, as an empty list is a valid cached result
+        print(f"Returning cached RSS news for '{area_name}' (normalized: '{normalized_area_name_for_cache}', max_results={max_results})")
+        return cached_articles
+
+    print(f"No cache hit for RSS news: '{area_name}' (normalized: '{normalized_area_name_for_cache}'). Fetching from source.")
+    articles_to_cache = [] # Initialize with an empty list
     try:
-        query = urllib.parse.quote(f"{area_name} news") # Make query more specific
-        # Using a broader search, could also try country-specific Google News if needed
+        # Use normalized_area_name_for_cache for the query as well for consistency
+        query = urllib.parse.quote(f"{normalized_area_name_for_cache} news") 
         rss_url = f"https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en"
         
-        print(f"Trying Google News RSS feed for: {area_name} with URL: {rss_url}")
+        print(f"Trying Google News RSS feed for: {normalized_area_name_for_cache} with URL: {rss_url}")
         feed = feedparser.parse(rss_url)
         
-        articles = []
         if not feed.entries:
-            print(f"No entries found in RSS feed for '{area_name}'. Trying broader query.")
-            query_broader = urllib.parse.quote(area_name) # Original broader query
+            print(f"No entries found in RSS feed for '{normalized_area_name_for_cache}'. Trying broader query.")
+            query_broader = urllib.parse.quote(normalized_area_name_for_cache) 
             rss_url_broader = f"https://news.google.com/rss/search?q={query_broader}&hl=en-US&gl=US&ceid=US:en"
             feed = feedparser.parse(rss_url_broader)
             if feed.entries:
-                print(f"Found entries with broader query for '{area_name}'.")
+                print(f"Found entries with broader query for '{normalized_area_name_for_cache}'.")
             else:
-                print(f"Still no entries found with broader RSS query for '{area_name}'.")
+                print(f"Still no entries found with broader RSS query for '{normalized_area_name_for_cache}'.")
 
         for entry in feed.entries[:max_results]:
             content = entry.get('summary', '')
@@ -593,43 +625,45 @@ def fetch_external_news_via_rss(area_name, max_results=10):
             
             image_url = fetch_cover_image(entry.get('title', ''))
             
-            published_time = timezone.now() # Default to now
+            published_time = timezone.now() 
             if hasattr(entry, 'published_parsed') and entry.published_parsed:
                 try:
-                    # feedparser. δημοσιεύθηκε_parsed is a time.struct_time
                     dt = datetime.fromtimestamp(time.mktime(entry.published_parsed))
                     published_time = timezone.make_aware(dt) if timezone.is_naive(dt) else dt
                 except Exception as e_date:
                     print(f"Could not parse date for article '{entry.get('title')}': {e_date}")
             elif hasattr(entry, 'published') and entry.published:
                  try:
-                    # Try to parse string date if struct_time not available
-                    dt = datetime.strptime(entry.published, '%a, %d %b %Y %H:%M:%S %Z') # Common RSS format
+                    dt = datetime.strptime(entry.published, '%a, %d %b %Y %H:%M:%S %Z')
                     published_time = timezone.make_aware(dt) if timezone.is_naive(dt) else dt
                  except ValueError:
                      try:
-                         dt = datetime.strptime(entry.published, '%Y-%m-%dT%H:%M:%SZ') # ISO format
+                         dt = datetime.strptime(entry.published, '%Y-%m-%dT%H:%M:%SZ')
                          published_time = timezone.make_aware(dt) if timezone.is_naive(dt) else dt
                      except ValueError as e_date_str:
                          print(f"Could not parse string date '{entry.published}' for article '{entry.get('title')}': {e_date_str}")
 
-            article = {
+            article_data = {
                 'title': entry.get('title', ''),
                 'content': content,
                 'cover_image': image_url,
                 'created_at': published_time,
-                'category': 'Google News', # Differentiate category
+                'category': 'Google News',
                 'is_external': True,
                 'external_url': entry.get('link', '#'),
             }
-            articles.append(article)
+            articles_to_cache.append(article_data)
         
-        print(f"Found {len(articles)} articles via Google News RSS for '{area_name}'")
-        return articles
+        print(f"Found {len(articles_to_cache)} articles via Google News RSS for '{normalized_area_name_for_cache}'")
+        # Cache for 1 hour (3600 seconds)
+        cache.set(cache_key, articles_to_cache, timeout=3600)
+        return articles_to_cache
     except Exception as e:
-        print(f"RSS feed error for {area_name}: {e}")
+        print(f"RSS feed error for {area_name} (normalized: {normalized_area_name_for_cache}): {e}")
         import traceback
         traceback.print_exc()
+        # Cache an empty list for a shorter period (e.g., 15 mins) on error to avoid hammering
+        cache.set(cache_key, [], timeout=900) 
         return []
 
 # This function now solely relies on the RSS feed method.

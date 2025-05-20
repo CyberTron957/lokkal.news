@@ -344,7 +344,7 @@
         width: 12px;
         height: 12px;
     }
-
+    
     .external-tag {
         display: flex;
         align-items: center;
@@ -694,11 +694,11 @@
                 {% for article in articles|slice:":4" %}
                     <article class="featured-article" data-index="{{ forloop.counter0 }}">
                         <img src="{{ article.cover_image }}" alt="{{ article.title }}">
-                        {% if article.is_external %}
-                            <span class="category external">Google News</span>
-                        {% else %}
-                            <span class="category">Featured</span>
-                        {% endif %}
+                            {% if article.is_external %}
+                                <span class="category external">Google News</span>
+                            {% else %}
+                                <span class="category">Featured</span>
+                            {% endif %}
                         <div class="content">
                             <h2 class="text-2xl sm:text-3xl font-bold mb-2">
                                 {% if article.is_external %}
@@ -740,11 +740,11 @@
             {% for article in articles|slice:"4:" %}
                 <article class="news-card">
                     <img src="{{ article.cover_image }}" alt="{{ article.title }}">
-                    {% if article.is_external %}
-                        <span class="category external">Google News</span>
-                    {% else %}
-                        <span class="category">{{ article.category }}</span>
-                    {% endif %}
+                        {% if article.is_external %}
+                            <span class="category external">Google News</span>
+                        {% else %}
+                            <span class="category">{{ article.category }}</span>
+                        {% endif %}
                     <div class="content">
                         <h3>
                             {% if article.is_external %}
