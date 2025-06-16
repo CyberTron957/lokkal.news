@@ -14,6 +14,7 @@ class Article(models.Model):
     cover_image = models.URLField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
+    likes = models.PositiveIntegerField(default=0)
     area = models.ForeignKey('Area', on_delete=models.CASCADE, related_name='articles', null=True, blank=True)
 
     def save(self, *args, **kwargs):

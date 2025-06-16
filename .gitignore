@@ -16,3 +16,6 @@ news_app/static/
 
 # Environment variables
 .env
+
+userinput.py
+.cursor

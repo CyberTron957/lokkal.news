@@ -10,7 +10,7 @@ import google.generativeai as genai
 import requests
 import json
 from django.http import JsonResponse, HttpResponse
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q, Sum, F
 from django.urls import resolve
 from django.utils import timezone
 from datetime import timedelta, datetime
@@ -24,6 +24,7 @@ from bs4 import BeautifulSoup # Ensure this is imported
 import urllib.parse # Ensure this is imported
 from django.core.cache import cache # Import Django's cache
 import logging
+from django.views.decorators.http import require_POST
 
 logger = logging.getLogger(__name__)
 
@@ -745,3 +746,17 @@ def trending_articles(request):
         articles_data.append(article_data)
     
     return JsonResponse({'articles': articles_data})
+
+# --------------------
+# AJAX Like Endpoint
+# --------------------
+
+@require_POST
+def like_article(request, article_id):
+    """Increment the like count for an article (AJAX)."""
+    article = get_object_or_404(Article, pk=article_id)
+    # Atomic update to avoid race conditions
+    Article.objects.filter(pk=article_id).update(likes=F('likes') + 1)
+    # Refresh from the database to get the updated value
+    article.refresh_from_db(fields=['likes'])
+    return JsonResponse({'success': True, 'likes': article.likes})

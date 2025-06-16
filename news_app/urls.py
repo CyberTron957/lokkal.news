@@ -8,6 +8,7 @@ urlpatterns = [
     path('autocomplete/area/', views.autocomplete_area, name='autocomplete_area'),
     path('all-articles/', views.all_articles_view, name='all-articles-view'),
     path('api/trending-articles/', views.trending_articles, name='trending_articles'),
+    path('api/article/<int:article_id>/like/', views.like_article, name='like_article'),
     path('article/<int:article_id>/', views.article_detail_view, name='article_detail_by_id'),
     path('<str:area_name>/', views.articles_by_area, name='articles_by_area'),
     # Updated URL pattern for article details within an area
