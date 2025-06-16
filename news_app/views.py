@@ -95,7 +95,8 @@ def run_gemini(text, area_name, max_retries=3, retry_delay=2):
                             "properties": {
                                 "title": {"type": "string"},
                                 "content": {"type": "string"},
-                                "category": {"type": "string"}
+                                "category": {"type": "string"},
+                                "image_keywords": {"type": "string"}
                             },
                             "required": ["title", "content"]
                         }
@@ -110,7 +111,7 @@ def run_gemini(text, area_name, max_retries=3, retry_delay=2):
                                    "response_schema": schema}
             )
 
-            prompt = f"Based on the diverse comments collected from individuals in the area of {area_name}, please create a series of long engaging news articles. Each article should effectively group similar topics and themes. Ensure article titles prominently features the area name: '{area_name}'. Here are the comments: {text}"
+            prompt = f"Based on the diverse comments collected from individuals in the area of {area_name}, please create a series of long engaging news articles. Each article should effectively group similar topics and themes. Ensure article titles prominently features the area name: '{area_name}'. For each article, provide specific image_keywords (3-5 descriptive words) that best represent the visual aspect of the article's content - these will be used to fetch relevant cover images. Here are the comments: {text}"
             response = model.generate_content(prompt)
             parsed_data = json.loads(response.text)
             return parsed_data['articles']
@@ -549,9 +550,13 @@ def generate_news(request):
                 logger.warning("Skipping article data with missing title or content.")
                 continue
 
-            # Fetch cover image using the refined logic (pass category too)
+            # Fetch cover image using image keywords if available, otherwise use title
             category = article_data.get('category', 'news')
-            cover_image_url = fetch_cover_image(title, category)
+            image_keywords = article_data.get('image_keywords')
+            # Use image keywords if available, otherwise fall back to title
+            search_query = image_keywords if image_keywords else title
+            logger.info(f"Using image search query: '{search_query}' (from keywords: {image_keywords is not None}) for article: '{title}'")
+            cover_image_url = fetch_cover_image(search_query, category)
 
             try:
                 article = Article.objects.create(
