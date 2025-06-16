@@ -46,6 +46,13 @@
         margin-bottom: 1.5rem;
         line-height: 1.3;
     }
+    .reporter-name {
+        font-size: 1rem;
+        font-style: italic;
+        color: #6c757d;
+        margin-top: -1rem;
+        margin-bottom: 1.5rem;
+    }
     .cover-image-container {
         margin: 0 0;
         border-radius: 12px;
@@ -350,6 +357,9 @@
     <article class="article-container">
         <header class="article-header">
             <h1>{{ article.title }}</h1>
+            {% if article.reporter_name %}
+                <p class="reporter-name">~ By {{ article.reporter_name }}</p>
+            {% endif %}
         </header>
         {% if article.cover_image %}
         <div class="cover-image-container">

@@ -16,6 +16,7 @@ class Article(models.Model):
     slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
     likes = models.PositiveIntegerField(default=0)
     area = models.ForeignKey('Area', on_delete=models.CASCADE, related_name='articles', null=True, blank=True)
+    reporter_name = models.CharField(max_length=100, blank=True, null=True, help_text="Displayed under the article title. Can be a name or a generic credit like 'Community Reports'.")
 
     def save(self, *args, **kwargs):
         if not self.slug:       
@@ -41,6 +42,7 @@ class Post(models.Model):
     date_posted = models.DateTimeField(default=timezone.now)
     area = models.ForeignKey('Area', on_delete=models.CASCADE, related_name='area_posts')
     image = models.ImageField(upload_to='post_images/', null=True, blank=True)
+    reporter_name = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return f"Post in {self.area.name}: {self.content[:50]}..." if self.area else f"Post (PK:{self.pk}): {self.content[:50]}..."

@@ -96,7 +96,8 @@ def run_gemini(text, area_name, max_retries=3, retry_delay=2):
                                 "title": {"type": "string"},
                                 "content": {"type": "string"},
                                 "category": {"type": "string"},
-                                "image_keywords": {"type": "string"}
+                                "image_keywords": {"type": "string"},
+                                "reporter_name": {"type": "string"}
                             },
                             "required": ["title", "content"]
                         }
@@ -111,7 +112,7 @@ def run_gemini(text, area_name, max_retries=3, retry_delay=2):
                                    "response_schema": schema}
             )
 
-            prompt = f"Based on the diverse comments collected from individuals in the area of {area_name}, please create a series of long engaging news articles. Each article should effectively group similar topics and themes. Ensure article titles prominently features the area name: '{area_name}'. For each article, provide specific image_keywords (3-5 descriptive words) that best represent the visual aspect of the article's content - these will be used to fetch relevant cover images. Here are the comments: {text}"
+            prompt = f"Based on the diverse comments collected from individuals in the area of {area_name}, please create a series of long engaging news articles. For each article, provide a title, content, category, image_keywords, and a reporter_name. The reporter_name should be credited to the individual if their name is provided, or use a general credit like 'A Community Report' if names are mixed or anonymous. Ensure article titles prominently feature the area name: '{area_name}'. Here are the comments: {text}"
             response = model.generate_content(prompt)
             parsed_data = json.loads(response.text)
             return parsed_data['articles']
@@ -415,6 +416,7 @@ def post_create(request):
         # Normalize the area name from the form
         area_name = normalize_area_name(request.POST.get('area', ''))
         content = request.POST.get('content', '').strip()
+        reporter_name = request.POST.get('reporter_name', '').strip()
         form = PostForm(request.POST) # Still pass original POST data to form
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -433,7 +435,7 @@ def post_create(request):
             # Manually create post if content is valid
             if content:
                 # Assign the Area object directly to the ForeignKey
-                post = Post.objects.create(content=content, area=area)
+                post = Post.objects.create(content=content, area=area, reporter_name=reporter_name)
                 # No longer need area.posts.add(post) because the relationship is handled by the ForeignKey
                 time.sleep(1) # Keep the delay if needed
                 return JsonResponse({'success': True})
@@ -446,6 +448,7 @@ def post_create(request):
         if form.is_valid():
             post = form.save(commit=False)
             post.content = content # Already got content above
+            post.reporter_name = reporter_name
             # Get the Area object
             area, _ = Area.objects.get_or_create(name=area_name)
             # Assign the Area object directly to the ForeignKey
@@ -470,7 +473,7 @@ def post_create(request):
 
 def get_posts_content_by_area(area_name: str, since=None):
     """
-    Fetches the combined content of posts for a given area.
+    Fetches the posts for a given area.
     Optionally filters posts created after a specific timestamp ('since').
     """
     try:
@@ -483,13 +486,13 @@ def get_posts_content_by_area(area_name: str, since=None):
             posts_query = posts_query.filter(date_posted__gt=since)
         else:
             logger.info(f"Fetching all posts for '{normalized_area}' (initial generation or no 'since' date)")
-        posts = posts_query.order_by('date_posted') # Ensure order if needed by LLM
-        if not posts.exists():
+        
+        if not posts_query.exists():
             logger.info("No posts found matching the criteria.")
             return None # Return None if no posts match
-        all_content = '" "'.join(post.content for post in posts)
-        logger.info(f"Found {posts.count()} posts, combined content length: {len(all_content)}")
-        return all_content
+
+        return posts_query
+
     except Area.DoesNotExist:
         logger.error(f"Area '{area_name}' not found.")
         return None
@@ -520,18 +523,29 @@ def generate_news(request):
         logger.info(f"Last generation time for {area_name}: {last_gen_time}")
 
         # Get content of NEW posts since the last generation
-        new_comments = get_posts_content_by_area(area_name, since=last_gen_time)
+        new_posts = get_posts_content_by_area(area_name, since=last_gen_time)
 
-        if not new_comments:
+        if not new_posts:
             logger.info(f"No new comments found for {area_name} since {last_gen_time}. No articles generated.")
             messages.info(request, f"No new comments found for '{area.name.title()}'. News is up to date.")
             return redirect(f'/{area_name}/') # Redirect to the area page
+
+        # Construct comments string including reporter names
+        comments_list = []
+        for post in new_posts:
+            if post.reporter_name:
+                comments_list.append(f'"{post.content}" - {post.reporter_name}')
+            else:
+                comments_list.append(f'"{post.content}"')
+        
+        new_comments_text = " ".join(comments_list)
+
 
         logger.info(f"Found new comments for {area_name}. Sending to LLM...")
         # Generate articles ONLY from the new comments
         # Consider adjusting the run_gemini prompt if you want it to be aware
         # that these are *new* comments, e.g., ask it to generate updates or new topics.
-        articles_data = run_gemini(new_comments, area_name)
+        articles_data = run_gemini(new_comments_text, area_name)
 
         logger.info(f"LLM generated {len(articles_data)} new articles")
 
@@ -545,6 +559,7 @@ def generate_news(request):
         for article_data in articles_data:
             title = article_data.get('title')
             content = article_data.get('content')
+            reporter_name = article_data.get('reporter_name')
 
             if not title or not content:
                 logger.warning("Skipping article data with missing title or content.")
@@ -564,11 +579,11 @@ def generate_news(request):
                     content=content,
                     category=category,
                     cover_image=cover_image_url,
+                    reporter_name=reporter_name,
                     # Assign the Area object directly during creation
                     area=area
                 )
                 # No longer need area.articles.add(article)
-                # area.articles.add(article)
                 newly_created_count += 1
                 # Use article.pk instead of article.id to satisfy linter
                 logger.info(f"Created article: {article.title} (PK: {article.pk}) for Area: {area.name}")

@@ -65,6 +65,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'news_app.context_processors.google_analytics',
             ],
         },
     },
@@ -133,3 +134,7 @@ CACHES = {
         'LOCATION': 'unique-snowflake', # Or any unique name
     }
 }
+
+# Google Analytics settings
+# Only enabled when DEBUG = False
+GOOGLE_ANALYTICS_ID = 'G-S7CS0M36G9'
