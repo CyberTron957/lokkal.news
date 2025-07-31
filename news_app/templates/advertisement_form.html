@@ -1,0 +1,524 @@
+{% extends "base.html" %}
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #1a73e8;
+        --primary-dark: #0d47a1;
+        --primary-light: #e8f0fe;
+        --secondary-color: #f5f5f5;
+        --text-primary: #212121;
+        --text-secondary: #757575;
+        --border-color: #e0e0e0;
+        --success-color: #4caf50;
+        --error-color: #f44336;
+        --warning-color: #ff9800;
+        --border-radius: 8px;
+        --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    body {
+        font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+        color: var(--text-primary);
+        background-color: #f9f9f9;
+        line-height: 1.6;
+    }
+
+    .main-content {
+        padding: 2rem 0;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .page-subtitle {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+
+    .form-card {
+        background-color: #fff;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        overflow: hidden;
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .form-card:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        background: #fff;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-header h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        background-color: #fff;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.25);
+        outline: none;
+    }
+
+    .form-text {
+        display: block;
+        margin-top: 0.25rem;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+    }
+
+    textarea.form-control {
+        min-height: 150px;
+        resize: vertical;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-submit {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+    }
+
+    .btn-submit:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-cancel {
+        background-color: white;
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-cancel:hover {
+        background-color: var(--secondary-color);
+        transform: translateY(-2px);
+    }
+
+    .invalid-feedback {
+        display: none;
+        color: var(--error-color);
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+
+    .form-control.is-invalid {
+        border-color: var(--error-color);
+    }
+
+    .form-control.is-invalid:focus {
+        box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.25);
+    }
+
+    .form-control.is-invalid~.invalid-feedback {
+        display: block;
+    }
+
+    .suggestions-container {
+        position: relative;
+    }
+
+    #suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 10;
+        background-color: #fff;
+        border: 1px solid var(--border-color);
+        border-top: none;
+        border-radius: 0 0 var(--border-radius) var(--border-radius);
+        max-height: 200px;
+        overflow-y: auto;
+        display: none;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        box-shadow: var(--box-shadow);
+    }
+
+    #suggestions li {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid var(--border-color);
+        transition: background-color 0.2s ease;
+    }
+
+    #suggestions li:last-child {
+        border-bottom: none;
+    }
+
+    #suggestions li:hover {
+        background-color: var(--primary-light);
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(3px);
+        z-index: 1000;
+        display: none;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .success-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #fff;
+        border-radius: var(--border-radius);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        padding: 2rem;
+        max-width: 90%;
+        width: 400px;
+        text-align: center;
+        z-index: 1001;
+        display: none;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .success-icon {
+        font-size: 3rem;
+        color: var(--success-color);
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+
+    .modal-message {
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-btn {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .modal-btn:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .spinner-border {
+        display: none;
+        vertical-align: middle;
+        border: 0.15em solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        -webkit-animation: spinner-border .75s linear infinite;
+        animation: spinner-border .75s linear infinite;
+        width: 1rem;
+        height: 1rem;
+        margin-right: 0.5rem;
+    }
+
+    @keyframes spinner-border {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translate(-50%, -60%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translate(-50%, -50%);
+            opacity: 1;
+        }
+    }
+
+    .submitting .spinner-border {
+        display: inline-block;
+    }
+
+    .submitting .btn-submit {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Modal for success message -->
+<div class="modal-overlay" id="modalOverlay"></div>
+<div class="success-modal" id="successModal">
+    <div class="success-icon">✓</div>
+    <h3 class="modal-title">Advertisement Posted!</h3>
+    <p class="modal-message">Your advertisement has been categorized and will appear in the local listings.</p>
+    <button class="modal-btn" id="backToAreaBtn">
+        Back to Your Area
+    </button>
+</div>
+
+<main class="main-content">
+    <div class="container">
+        <h1 class="page-title">Post an Advertisement</h1>
+        <p class="page-subtitle">Reach your local community with your advertisement.</p>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-card">
+                    <div class="card-header">
+                        <h2>Create Advertisement</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="advertisementForm" method="POST" class="needs-validation" novalidate>
+                            {% csrf_token %}
+
+                            <div class="form-group suggestions-container">
+                                <label for="area" class="form-label">Your Area</label>
+                                <input type="text" id="area" name="area" class="form-control"
+                                    value="{{ form.area.value|default:request.GET.area|default:'' }}"
+                                    placeholder="Enter your area or neighborhood" autocomplete="off" required>
+                                <ul id="suggestions">
+                                    <!-- Suggestions will be loaded here -->
+                                </ul>
+                                <div class="invalid-feedback">
+                                    Please specify your area.
+                                </div>
+                                <small class="form-text">
+                                    Your area helps target your advertisement to the right community.
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="advertiser_name" class="form-label">Advertiser Name (Optional)</label>
+                                <input type="text" id="advertiser_name" name="advertiser_name" class="form-control"
+                                    placeholder="e.g., John's Auto Shop">
+                                <small class="form-text">
+                                    Your name or business name will be displayed with the advertisement.
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="content" class="form-label">Advertisement Content</label>
+                                <textarea id="content" name="content" class="form-control"
+                                    placeholder="Describe what you're offering, selling, or looking for..."
+                                    required>{{ form.content.value|default:'' }}</textarea>
+                                <div class="invalid-feedback">
+                                    Please provide your advertisement content.
+                                </div>
+                                <small class="form-text">
+                                    Be clear and specific. Our AI will automatically categorize your ad (jobs, housing,
+                                    for-sale, services, etc.).
+                                </small>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-cancel" onclick="window.history.back()">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="btn btn-submit">
+                                    <span class="spinner-border" role="status" aria-hidden="true"></span>
+                                    Post Advertisement
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    document.getElementById('advertisementForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        // Reset previous validation states
+        this.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+        // Validate required fields
+        let isValid = true;
+        const content = document.getElementById('content');
+        const area = document.getElementById('area');
+
+        if (!content.value.trim()) {
+            content.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        if (!area.value.trim()) {
+            area.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        if (isValid) {
+            const formData = new FormData(this);
+            this.classList.add('submitting');
+
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success modal
+                        document.getElementById('modalOverlay').style.display = 'block';
+                        document.getElementById('successModal').style.display = 'block';
+
+                        // Setup back to area button
+                        document.getElementById('backToAreaBtn').onclick = function () {
+                            let areaName = document.getElementById('area').value.trim().toLowerCase();
+                            areaName = areaName.replace(/\s+/g, ' ');
+                            if (areaName) {
+                                window.location.href = `/${encodeURIComponent(areaName)}/`;
+                            } else {
+                                window.location.href = '/';
+                            }
+                        };
+                    } else {
+                        // Handle errors
+                        Object.keys(data.errors).forEach(key => {
+                            const element = document.getElementById(key);
+                            if (element) {
+                                element.classList.add('is-invalid');
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                })
+                .finally(() => {
+                    this.classList.remove('submitting');
+                });
+        }
+    });
+
+    // Area autocomplete functionality
+    $(document).ready(function () {
+        $('#area').on('input', function () {
+            var query = $(this).val();
+            if (query.length >= 2) {
+                $.ajax({
+                    url: '{% url "autocomplete_area" %}',
+                    data: {
+                        'term': query
+                    },
+                    dataType: 'json',
+                    success: function (data) {
+                        $('#suggestions').empty();
+                        if (data.length > 0) {
+                            $('#suggestions').show();
+                            data.forEach(function (item) {
+                                $('#suggestions').append(
+                                    '<li>' + item + '</li>'
+                                );
+                            });
+
+                            // Add click handler for suggestions
+                            $('#suggestions li').click(function () {
+                                $('#area').val($(this).text());
+                                $('#suggestions').hide();
+                            });
+                        } else {
+                            $('#suggestions').hide();
+                        }
+                    }
+                });
+            } else {
+                $('#suggestions').hide();
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        $(document).click(function (e) {
+            if (!$(e.target).closest('.suggestions-container').length) {
+                $('#suggestions').hide();
+            }
+        });
+    });
+</script>
+{% endblock content %}

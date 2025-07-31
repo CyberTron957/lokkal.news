@@ -1,10 +1,10 @@
 import time
 from unicodedata import category
-from .forms import PostForm
+from .forms import PostForm, AdvertisementForm
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.files.storage import default_storage
-from .models import Article, Post, questions, URLModel, Area
+from .models import Article, Post, questions, URLModel, Area, Advertisement
 from django.conf import settings
 import google.generativeai as genai
 import requests
@@ -140,7 +140,7 @@ def generate_article_qs(article):
         }
 
         model = genai.GenerativeModel( # type: ignore
-            'gemini-1.5-flash',
+            'gemini-2.0-flash',
             generation_config={"response_mime_type": "application/json",
                                "response_schema": schema}
         )
@@ -470,6 +470,145 @@ def post_create(request):
 
     return render(request, 'post_form.html', {'form': form})
 
+def categorize_advertisement(content, max_retries=3, retry_delay=2):
+    """
+    Categorize advertisement using Gemini API with retry logic.
+    """
+    attempt = 0
+    while attempt < max_retries:
+        try:
+            schema = {
+                "type": "object",
+                "properties": {
+                    "category": {"type": "string"}
+                },
+                "required": ["category"]
+            }
+
+            model = genai.GenerativeModel(
+                'gemini-2.0-flash',
+                generation_config={"response_mime_type": "application/json",
+                                   "response_schema": schema}
+            )
+
+            prompt = f"Categorize this advertisement into one of these categories: 'jobs', 'housing', 'for-sale', 'services', 'community', 'personals', 'gigs', 'resumes', or 'discussion-forums'. Choose the most appropriate single category. Advertisement content: {content}"
+            response = model.generate_content(prompt)
+            parsed_data = json.loads(response.text)
+            return parsed_data['category']
+        except Exception as e:
+            logger.exception(f"Error in categorize_advertisement (attempt {attempt+1}/{max_retries}): {e}")
+            attempt += 1
+            if attempt < max_retries:
+                time.sleep(retry_delay)
+    logger.error(f"categorize_advertisement failed after {max_retries} attempts.")
+    return "general"
+
+def advertisement_create(request):
+    if request.method == 'POST':
+        area_name = normalize_area_name(request.POST.get('area', ''))
+        content = request.POST.get('content', '').strip()
+        advertiser_name = request.POST.get('advertiser_name', '').strip()
+        form = AdvertisementForm(request.POST)
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            errors = {}
+            if not content:
+                errors['content'] = True
+            if not area_name:
+                errors['area'] = True
+
+            if errors:
+                return JsonResponse({'success': False, 'errors': errors})
+
+            area, _ = Area.objects.get_or_create(name=area_name)
+            if content:
+                # Categorize the advertisement
+                category = categorize_advertisement(content)
+                advertisement = Advertisement.objects.create(
+                    content=content, 
+                    area=area, 
+                    advertiser_name=advertiser_name,
+                    category=category
+                )
+                time.sleep(1)
+                return JsonResponse({'success': True})
+            else:
+                return JsonResponse({'success': False, 'errors': {'content': True}})
+
+        # Non-AJAX request handling
+        if form.is_valid():
+            advertisement = form.save(commit=False)
+            advertisement.content = content
+            advertisement.advertiser_name = advertiser_name
+            area, _ = Area.objects.get_or_create(name=area_name)
+            advertisement.area = area
+            # Categorize the advertisement
+            advertisement.category = categorize_advertisement(content)
+            advertisement.save()
+            return redirect(f'/{area_name}/')
+        else:
+            form = AdvertisementForm(initial={'area': request.POST.get('area', ''), 'content': content})
+            return render(request, 'advertisement_form.html', {'form': form})
+
+    else:  # GET request
+        content = request.GET.get('content', '')
+        area_param = normalize_area_name(request.GET.get('area', ''))
+        form = AdvertisementForm(initial={'area': area_param, 'content': content})
+
+    return render(request, 'advertisement_form.html', {'form': form})
+
+def advertisements_by_category(request, area_name, category):
+    normalized_area_name = normalize_area_name(area_name)
+    area = get_object_or_404(Area, name=normalized_area_name)
+    advertisements = Advertisement.objects.filter(area=area, category=category).order_by('-created_at')
+    
+    context = {
+        'advertisements': advertisements,
+        'area': area,
+        'category': category.replace('-', ' ').title(),
+        'category_slug': category
+    }
+    return render(request, 'advertisements_by_category.html', context)
+
+def trending_articles(request):
+    """
+    API endpoint to return trending articles for the post form sidebar
+    """
+    # Get recent articles, limited to 5
+    articles = Article.objects.all().order_by('-created_at')[:5]
+    
+    articles_data = []
+    for article in articles:
+        # Construct the URL for the article
+        if article.area:
+            article_url = f"/{article.area.name}/{article.slug}/"
+        else:
+            article_url = f"/article/{article.pk}/"
+            
+        articles_data.append({
+            'title': article.title,
+            'category': article.category,
+            'created_at': article.created_at.isoformat(),
+            'cover_image': article.cover_image,
+            'url': article_url
+        })
+    
+    return JsonResponse({'articles': articles_data})
+
+@require_POST
+def like_article(request, article_id):
+    """
+    API endpoint to like an article
+    """
+    try:
+        article = get_object_or_404(Article, pk=article_id)
+        article.likes += 1
+        article.save()
+        return JsonResponse({'success': True, 'likes': article.likes})
+    except Exception as e:
+        logger.exception(f"Error liking article {article_id}: {e}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
 
 def get_posts_content_by_area(area_name: str, since=None):
     """
@@ -708,6 +847,17 @@ def articles_by_area(request, area_name):
         if google_news_articles:
             articles = google_news_articles
     
+    # Get advertisements for this area and group by category
+    advertisements = Advertisement.objects.filter(area=area).order_by('-created_at')
+    ad_categories = {}
+    for ad in advertisements:
+        if ad.category not in ad_categories:
+            ad_categories[ad.category] = []
+        ad_categories[ad.category].append(ad)
+    
+    # Convert ad_categories.items() to a list for template usage
+    ad_categories_list = list(ad_categories.items())
+    
     # Check if this was an auto-corrected search or suggestion
     auto_corrected = request.session.pop('auto_corrected', False)
     suggestion_only = request.session.pop('suggestion_only', False)
@@ -725,6 +875,8 @@ def articles_by_area(request, area_name):
     context = {
         'area': area,
         'articles': articles,
+        'ad_categories': ad_categories,
+        'ad_categories_list': ad_categories_list,
         'auto_corrected': auto_corrected,
         'suggestion_only': suggestion_only,
         'original_query': original_query,

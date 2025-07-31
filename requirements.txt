@@ -1,0 +1,21 @@
+# Core Django
+Django>=5.0.7
+
+# Image processing
+Pillow
+
+# Google Generative AI (Gemini)
+google-generativeai
+
+# HTTP requests
+requests
+
+# News and feeds
+gnews
+feedparser
+
+# HTML parsing
+beautifulsoup4
+
+# For type hints (if needed, optional)
+typing-extensions

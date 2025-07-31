@@ -88,6 +88,97 @@
         line-height: 1.6;
     }
     
+    /* Classified Cards Styles */
+    .classified-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+    }
+    
+    .classified-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+    
+    .classified-content {
+        padding: 1.5rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .classified-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .classified-header h4 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #111827;
+    }
+    
+    .classified-count {
+        background: #f3f4f6;
+        color: #6b7280;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .classified-preview {
+        flex: 1;
+        margin-bottom: 1rem;
+    }
+    
+    .classified-preview p {
+        color: #374151;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin: 0 0 0.5rem 0;
+    }
+    
+    .classified-preview small {
+        color: #9ca3af;
+        font-size: 0.8rem;
+    }
+    
+    .classified-link {
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        align-self: flex-start;
+    }
+    
+    .classified-link:hover {
+        color: #2563eb;
+        text-decoration: underline;
+    }
+    
+    .classifieds-section {
+        margin-top: 2rem;
+    }
+    
+    .classifieds-section h3 {
+        margin-bottom: 1.5rem;
+        color: #111827;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    
+    .classifieds-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    
     .correction-suggestion-banner strong {
         font-weight: 600;
         color: #4F46E5;
@@ -654,6 +745,53 @@
             font-size: 1rem;
         }
     }
+
+    /* Advertisement section styles */
+    .ad-category-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .all-classifieds-card {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+
+    .all-classifieds-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .all-classifieds-card a:hover {
+        background-color: #F9FAFB;
+        border-color: #10B981;
+        transform: translateY(-1px);
+    }
+
+    .floating-action-button:hover + a span,
+    a[href*="advertisement-create"]:hover span {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    /* Responsive adjustments for the all-classifieds card */
+    @media (max-width: 992px) {
+        .all-classifieds-card {
+            grid-column: span 2;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .all-classifieds-card {
+            grid-column: span 1;
+        }
+        
+        .all-classifieds-card .content > div:nth-child(2) {
+            grid-template-columns: 1fr;
+       
 </style>
 {% endblock %}
 {% block content %}
@@ -758,9 +896,9 @@
             </div>
         </section>
         
-        <!-- News Grid Section - Show remaining articles -->
+        <!-- News Grid Section - Show articles mixed with classified ads -->
         <section class="news-grid">
-            {% for article in articles|slice:"4:" %}
+            {% for article in articles %}
                 <article class="news-card">
                     <img src="{{ article.cover_image }}" alt="{{ article.title }}">
                         {% if article.is_external %}
@@ -813,28 +951,154 @@
                         </div>
                     </div>
                 </article>
+                
+                <!-- Insert classified ad card every 3 articles -->
+                {% if forloop.counter|divisibleby:3 and ad_categories_list %}
+                    {% if forloop.counter == 3 and ad_categories_list.0 %}
+                        <article class="classified-card">
+                            <div class="classified-content">
+                                <div class="classified-header">
+                                    <h4>{{ ad_categories_list.0.0|title }}</h4>
+                                    <span class="classified-count">{{ ad_categories_list.0.1|length }} listing{{ ad_categories_list.0.1|length|pluralize }}</span>
+                                </div>
+                                {% if ad_categories_list.0.1 %}
+                                    <div class="classified-preview">
+                                        <p>{{ ad_categories_list.0.1.0.content|truncatechars:100 }}</p>
+                                        <small>by {{ ad_categories_list.0.1.0.advertiser_name|default:"Anonymous" }} • {{ ad_categories_list.0.1.0.created_at|timesince }} ago</small>
+                                    </div>
+                                {% endif %}
+                                <a href="{% url 'advertisements_by_category' area_name=area.name category=ad_categories_list.0.0 %}" class="classified-link">
+                                    View all {{ ad_categories_list.0.0|title }} →
+                                </a>
+                            </div>
+                        </article>
+                    {% elif forloop.counter == 6 and ad_categories_list.1 %}
+                        <article class="classified-card">
+                            <div class="classified-content">
+                                <div class="classified-header">
+                                    <h4>{{ ad_categories_list.1.0|title }}</h4>
+                                    <span class="classified-count">{{ ad_categories_list.1.1|length }} listing{{ ad_categories_list.1.1|length|pluralize }}</span>
+                                </div>
+                                {% if ad_categories_list.1.1 %}
+                                    <div class="classified-preview">
+                                        <p>{{ ad_categories_list.1.1.0.content|truncatechars:100 }}</p>
+                                        <small>by {{ ad_categories_list.1.1.0.advertiser_name|default:"Anonymous" }} • {{ ad_categories_list.1.1.0.created_at|timesince }} ago</small>
+                                    </div>
+                                {% endif %}
+                                <a href="{% url 'advertisements_by_category' area_name=area.name category=ad_categories_list.1.0 %}" class="classified-link">
+                                    View all {{ ad_categories_list.1.0|title }} →
+                                </a>
+                            </div>
+                        </article>
+                    {% elif forloop.counter == 9 and ad_categories_list.2 %}
+                        <article class="classified-card">
+                            <div class="classified-content">
+                                <div class="classified-header">
+                                    <h4>{{ ad_categories_list.2.0|title }}</h4>
+                                    <span class="classified-count">{{ ad_categories_list.2.1|length }} listing{{ ad_categories_list.2.1|length|pluralize }}</span>
+                                </div>
+                                {% if ad_categories_list.2.1 %}
+                                    <div class="classified-preview">
+                                        <p>{{ ad_categories_list.2.1.0.content|truncatechars:100 }}</p>
+                                        <small>by {{ ad_categories_list.2.1.0.advertiser_name|default:"Anonymous" }} • {{ ad_categories_list.2.1.0.created_at|timesince }} ago</small>
+                                    </div>
+                                {% endif %}
+                                <a href="{% url 'advertisements_by_category' area_name=area.name category=ad_categories_list.2.0 %}" class="classified-link">
+                                    View all {{ ad_categories_list.2.0|title }} →
+                                </a>
+                            </div>
+                        </article>
+                    {% endif %}
+                {% endif %}
             {% endfor %}
         </section>
+        
+        <!-- Show remaining classified categories if no articles to mix with -->
+        {% if ad_categories_list %}
+            <section class="classifieds-section">
+                <h3>Local Classifieds</h3>
+                <div class="classifieds-grid">
+                    {% for category_name, ads in ad_categories_list %}
+                        <article class="classified-card">
+                            <div class="classified-content">
+                                <div class="classified-header">
+                                    <h4>{{ category_name|title }}</h4>
+                                    <span class="classified-count">{{ ads|length }} listing{{ ads|length|pluralize }}</span>
+                                </div>
+                                {% if ads %}
+                                    <div class="classified-preview">
+                                        <p>{{ ads.0.content|truncatechars:100 }}</p>
+                                        <small>by {{ ads.0.advertiser_name|default:"Anonymous" }} • {{ ads.0.created_at|timesince }} ago</small>
+                                    </div>
+                                {% endif %}
+                                <a href="{% url 'advertisements_by_category' area_name=area.name category=category_name %}" class="classified-link">
+                                    View all {{ category_name|title }} →
+                                </a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
     {% else %}
-        <div class="empty-state">
-            <h2>No news found</h2>
-            <p>Be the first to create content for this community and help generate local news.</p>
-            <a href="{% url 'post-create' %}?area={{ area.name }}" class="create-post-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-                </svg>
-                Create a post
-            </a>
-        </div>
+        <!-- No articles available -->
+        {% if ad_categories_list %}
+            <section class="classifieds-section">
+                <h3>Local Classifieds</h3>
+                <div class="classifieds-grid">
+                    {% for category_name, ads in ad_categories_list %}
+                        <article class="classified-card">
+                            <div class="classified-content">
+                                <div class="classified-header">
+                                    <h4>{{ category_name|title }}</h4>
+                                    <span class="classified-count">{{ ads|length }} listing{{ ads|length|pluralize }}</span>
+                                </div>
+                                {% if ads %}
+                                    <div class="classified-preview">
+                                        <p>{{ ads.0.content|truncatechars:100 }}</p>
+                                        <small>by {{ ads.0.advertiser_name|default:"Anonymous" }} • {{ ads.0.created_at|timesince }} ago</small>
+                                    </div>
+                                {% endif %}
+                                <a href="{% url 'advertisements_by_category' area_name=area.name category=category_name %}" class="classified-link">
+                                    View all {{ category_name|title }} →
+                                </a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            </section>
+        {% else %}
+            <div class="empty-state">
+                <h2>No news found</h2>
+                <p>Be the first to create content for this community and help generate local news.</p>
+                <a href="{% url 'post-create' %}?area={{ area.name }}" class="create-post-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Create a post
+                </a>
+            </div>
+        {% endif %}
     {% endif %}
     
-    <!-- Floating Action Button -->
-    <a href="{% url 'post-create' %}?area={{ area.name }}" class="floating-action-button">
-        <span class="fab-label">Share Your Story</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-        </svg>
-    </a>
+
+    
+    <!-- Floating Action Buttons -->
+    <div style="position: fixed; bottom: 2rem; right: 2rem; display: flex; flex-direction: column; gap: 1rem; z-index: 100;">
+        <a href="{% url 'post-create' %}?area={{ area.name }}" class="floating-action-button">
+            <span class="fab-label">Share Your Story</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+        </a>
+        <a href="{% url 'advertisement-create' %}?area={{ area.name }}" style="height: 60px; width: 60px; background-color: #10B981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2); transition: all 0.3s ease; text-decoration: none; position: relative;">
+            <span style="position: absolute; right: 70px; background: #1F2937; color: white; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; white-space: nowrap; opacity: 0; transform: translateX(10px); transition: all 0.3s ease; pointer-events: none;">Post Ad</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+                <path d="M5 6a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1zm0 3a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1z"/>
+            </svg>
+        </a>
+    </div>
 
     <!-- Temporary CTA Popup -->
     <div id="ctaPopup" class="cta-popup">

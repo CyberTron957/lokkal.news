@@ -59,6 +59,27 @@ class URLModel(models.Model):
 
 
 
+class Advertisement(models.Model):
+    content = models.TextField()
+    category = models.CharField(max_length=100, default="general")
+    created_at = models.DateTimeField(auto_now_add=True)
+    area = models.ForeignKey('Area', on_delete=models.CASCADE, related_name='advertisements', null=True, blank=True)
+    advertiser_name = models.CharField(max_length=100, blank=True, null=True)
+    slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            import time
+            unique_hash = hashlib.sha256(f"{self.content[:50]}{time.time()}".encode()).hexdigest()[:8]
+            self.slug = f"ad-{unique_hash}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Ad: {self.content[:50]}..." if len(self.content) > 50 else f"Ad: {self.content}"
+
+    class Meta:
+        ordering = ['-created_at']
+
 class Area(models.Model):
     name = models.CharField(max_length=255, unique=True)
     last_generated_at = models.DateTimeField(null=True, blank=True, editable=False)
