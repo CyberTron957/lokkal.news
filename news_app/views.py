@@ -315,24 +315,42 @@ def init_view(request):
     for p in trending_pages_data:
         logger.info(f"Area: {p['name']}, Path: {p['path']}, Total Visits: {p['visits']}")
     
-    # Get trending articles - filter by article being not null
-    trending_url_models = URLModel.objects.filter(
-        article__isnull=False  # Must have an associated article
-    ).order_by('-visits')[:10]
+    # Get trending articles from the last week based on views
+    one_week_ago = timezone.now() - timedelta(days=7)
     
-    # Extract the article objects directly, ensuring uniqueness
-    trending_articles_dict = {} # Use dict to handle potential duplicates based on article PK
-    for url_model in trending_url_models:
-        if url_model.article and url_model.article.pk not in trending_articles_dict:
-             trending_articles_dict[url_model.article.pk] = url_model.article
-
-    # Get the articles from the dictionary values
-    trending_articles = list(trending_articles_dict.values())
-
-    # Sort the unique trending articles by creation date (newest first)
-    # Note: This sorting happens *after* selecting based on visits. 
-    # You might want to reconsider if primary sort should be date or visits.
-    trending_articles.sort(key=lambda article: article.created_at, reverse=True)
+    # Get articles from the last week and aggregate their total visits
+    trending_articles = Article.objects.filter(
+        created_at__gte=one_week_ago  # Articles from the last week
+    ).annotate(
+        total_visits=Sum('urlmodel__visits')  # Sum all visits for each article
+    ).filter(
+        total_visits__isnull=False,  # Only articles that have been visited
+        total_visits__gt=0  # Only articles with at least 1 visit
+    ).order_by('-total_visits', '-created_at')[:10]  # Order by visits first, then by creation date
+    
+    # If we don't have enough trending articles from the last week, 
+    # fill with recent articles that have some visits
+    if len(trending_articles) < 6:
+        additional_articles = Article.objects.annotate(
+            total_visits=Sum('urlmodel__visits')
+        ).filter(
+            total_visits__isnull=False,
+            total_visits__gt=0
+        ).exclude(
+            pk__in=[article.pk for article in trending_articles]  # Exclude already selected articles
+        ).order_by('-total_visits', '-created_at')[:6-len(trending_articles)]
+        
+        # Combine the lists
+        trending_articles = list(trending_articles) + list(additional_articles)
+    
+    # Convert to list if it's a QuerySet
+    trending_articles = list(trending_articles)
+    
+    # Debug logging for trending articles
+    logger.info(f"Found {len(trending_articles)} trending articles from the last week")
+    for i, article in enumerate(trending_articles[:5], 1):  # Log first 5
+        visits = getattr(article, 'total_visits', 0) or 0
+        logger.info(f"  {i}. '{article.title[:50]}...' - {visits} visits")
     
     context = {
         'trending_pages': trending_pages_data,
