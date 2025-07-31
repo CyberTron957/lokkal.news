@@ -176,7 +176,7 @@
         <div class="mt-8 sm:mt-12 px-2">
             <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-blue-600 px-4">Trending Stories</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {% for article in trending_articles|slice:"1:" %}
+                {% for article in trending_articles %}
                 <div class="trending-card rounded-xl overflow-hidden shadow-lg">
                     <img src="{{ article.cover_image }}" alt="{{ article.title }}" class="w-full h-40 sm:h-48 object-cover">
                     <div class="p-4 sm:p-6">

@@ -107,7 +107,7 @@ def run_gemini(text, area_name, max_retries=3, retry_delay=2):
             }
 
             model = genai.GenerativeModel( # type: ignore
-                'gemini-2.0-flash',
+                'gemini-2.5-flash',
                 generation_config={"response_mime_type": "application/json",
                                    "response_schema": schema}
             )
@@ -140,7 +140,7 @@ def generate_article_qs(article):
         }
 
         model = genai.GenerativeModel( # type: ignore
-            'gemini-2.0-flash',
+            'gemini-2.5-flash',
             generation_config={"response_mime_type": "application/json",
                                "response_schema": schema}
         )
@@ -315,36 +315,41 @@ def init_view(request):
     for p in trending_pages_data:
         logger.info(f"Area: {p['name']}, Path: {p['path']}, Total Visits: {p['visits']}")
     
-    # Get trending articles from the last week based on views
+    # Get trending articles based on views, prioritizing recent articles
     one_week_ago = timezone.now() - timedelta(days=7)
     
-    # Get articles from the last week and aggregate their total visits
-    trending_articles = Article.objects.filter(
-        created_at__gte=one_week_ago  # Articles from the last week
+    # First, try to get trending articles from the last week
+    recent_trending = Article.objects.filter(
+        created_at__gte=one_week_ago
     ).annotate(
-        total_visits=Sum('urlmodel__visits')  # Sum all visits for each article
+        total_visits=Sum('urlmodel__visits')
     ).filter(
-        total_visits__isnull=False,  # Only articles that have been visited
-        total_visits__gt=0  # Only articles with at least 1 visit
-    ).order_by('-total_visits', '-created_at')[:10]  # Order by visits first, then by creation date
+        total_visits__isnull=False,
+        total_visits__gt=0
+    ).order_by('-total_visits', '-created_at')[:6]
     
-    # If we don't have enough trending articles from the last week, 
-    # fill with recent articles that have some visits
-    if len(trending_articles) < 6:
+    # If we don't have enough recent trending articles, get the most viewed articles overall
+    if len(recent_trending) < 6:
+        # Get all articles with visits, excluding the ones we already have
+        recent_trending_ids = [article.pk for article in recent_trending]
+        
         additional_articles = Article.objects.annotate(
             total_visits=Sum('urlmodel__visits')
         ).filter(
             total_visits__isnull=False,
             total_visits__gt=0
         ).exclude(
-            pk__in=[article.pk for article in trending_articles]  # Exclude already selected articles
-        ).order_by('-total_visits', '-created_at')[:6-len(trending_articles)]
+            pk__in=recent_trending_ids
+        ).order_by('-total_visits', '-created_at')[:6-len(recent_trending)]
         
         # Combine the lists
-        trending_articles = list(trending_articles) + list(additional_articles)
+        trending_articles = list(recent_trending) + list(additional_articles)
+    else:
+        trending_articles = list(recent_trending)
     
-    # Convert to list if it's a QuerySet
-    trending_articles = list(trending_articles)
+    # If still no articles with visits, get the most recent articles
+    if not trending_articles:
+        trending_articles = list(Article.objects.all().order_by('-created_at')[:6])
     
     # Debug logging for trending articles
     logger.info(f"Found {len(trending_articles)} trending articles from the last week")
@@ -504,7 +509,7 @@ def categorize_advertisement(content, max_retries=3, retry_delay=2):
             }
 
             model = genai.GenerativeModel(
-                'gemini-2.0-flash',
+                'gemini-2.5-flash',
                 generation_config={"response_mime_type": "application/json",
                                    "response_schema": schema}
             )
