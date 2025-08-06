@@ -2,667 +2,141 @@
 
 {% block extra_css %}
 <style>
-    .featured-news {
-        margin-bottom: 30px;
-    }
-
-    .featured-article {
-        position: relative;
-        height: 400px;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        transition: transform 0.3s ease;
-    }
-    
-    .featured-article:hover {
-        transform: translateY(-5px);
-    }
-
-    .featured-article img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .featured-article .content {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        padding: 30px;
-        background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 50%, transparent 100%);
-        color: white;
-        overflow: hidden;
-    }
-
-    .featured-article h2 a {
-        color: white;
-        text-decoration: none;
-        font-size: 2rem;
-        line-height: 1.3;
-        display: block;
-        margin: 10px 0;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .featured-article h2 a:hover {
-        text-decoration: underline;
-    }
-
-    .featured-article .content p.mb-2 {
-        font-size: 1rem;
-        line-height: 1.5;
-        color: rgba(255, 255, 255, 0.85);
-        margin-bottom: 12px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    /* Auto-correction styles */
-    form.inline {
-        display: inline;
-    }
-
-    button.text-blue-600 {
-        font-size: inherit;
-        font-family: inherit;
-        cursor: pointer;
-    }
-    
-    /* Simplified Auto-correction banners */
-    .correction-suggestion-banner {
-        padding: 0.75rem 1rem;
-        margin-bottom: 1.5rem;
-        border-radius: 8px;
-        background-color: rgba(243, 244, 246, 0.8);
-        font-size: 0.95rem;
-        color: #374151;
-        line-height: 1.6;
-    }
-    
-    /* Classified Cards Styles */
-    .classified-card {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s, box-shadow 0.2s;
-        cursor: pointer;
-    }
-    
-    .classified-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-    }
-    
-    .classified-content {
-        padding: 1.5rem;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .classified-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-    }
-    
-    .classified-header h4 {
-        margin: 0;
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #111827;
-    }
-    
-    .classified-count {
-        background: #f3f4f6;
-        color: #6b7280;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
-    
-    .classified-preview {
-        flex: 1;
-        margin-bottom: 1rem;
-    }
-    
-    .classified-preview p {
-        color: #374151;
-        font-size: 0.9rem;
-        line-height: 1.5;
-        margin: 0 0 0.5rem 0;
-    }
-    
-    .classified-preview small {
-        color: #9ca3af;
-        font-size: 0.8rem;
-    }
-    
-    .classified-link {
-        color: #3b82f6;
-        text-decoration: none;
-        font-weight: 500;
-        font-size: 0.9rem;
-        align-self: flex-start;
-    }
-    
-    .classified-link:hover {
-        color: #2563eb;
-        text-decoration: underline;
-    }
-    
-    .classifieds-section {
-        margin-top: 2rem;
-    }
-    
-    .classifieds-section h3 {
-        margin-bottom: 1.5rem;
-        color: #111827;
-        font-size: 1.5rem;
-        font-weight: 600;
-    }
-    
-    .classifieds-grid {
+    /* Main Layout */
+    .news-container {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 20px;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
     }
-    
-    .correction-suggestion-banner strong {
-        font-weight: 600;
-        color: #4F46E5;
-    }
-    
-    .correction-suggestion-banner a,
-    .correction-suggestion-banner button {
-        color: #4F46E5;
-        text-decoration: underline;
-        text-underline-offset: 2px;
-        font-weight: 500;
-        background: none;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-    }
-    
-    .correction-suggestion-banner a:hover,
-    .correction-suggestion-banner button:hover {
-        color: #4338CA;
-    }
-    
-    /* Temporary CTA Popup */
-    .cta-popup {
-        position: fixed;
-        bottom: -100%; /* Initially hidden */
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #4F46E5;
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 12px 12px 0 0;
-        box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.15);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
+
+    /* Hero Section with 3 Carousels */
+    .hero-section {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        grid-template-rows: 1fr 1fr;
         gap: 1rem;
-        transition: bottom 0.5s ease-in-out;
-        max-width: 90%;
-        width: auto;
+        height: 500px;
+        margin-bottom: 2rem;
     }
 
-    .cta-popup.show {
-        bottom: 0; /* Slides up */
-    }
-
-    .cta-popup p {
-        margin: 0;
-        font-size: 0.95rem;
-    }
-
-    .cta-popup .popup-action-btn {
-        background-color: white;
-        color: #4F46E5;
-        padding: 0.5rem 1rem;
+    /* Main Carousel (Left Side) */
+    .hero-main-carousel {
+        grid-row: span 2;
+        position: relative;
         border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-        white-space: nowrap;
-        transition: all 0.2s ease;
-    }
-    
-    .cta-popup .popup-action-btn:hover {
-        background-color: #f0f0f0;
-    }
-
-    .cta-popup .close-btn {
-        background: none;
-        border: none;
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 1.5rem;
-        line-height: 1;
-        padding: 0 0.5rem;
-        margin-left: auto;
-    }
-    
-    .cta-popup .close-btn:hover {
-        color: white;
-    }
-
-    @media (max-width: 600px) {
-        .cta-popup {
-            flex-direction: column;
-            text-align: center;
-            gap: 0.75rem;
-            padding: 1rem;
-        }
-        .cta-popup .popup-action-btn {
-            width: 100%;
-            justify-content: center;
-            display: inline-block;
-        }
-        .cta-popup .close-btn {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-        }
-    }
-    
-    /* Ensure existing banner styles are removed or overridden */
-    .auto-correction-banner {
-        /* Remove old styles that might conflict */
-        border-left: none !important;
-        box-shadow: none !important;
-        flex-direction: row !important; /* to align text and link on one line */
-        gap: 0.5rem !important;
-        align-items: baseline !important;
-    }
-    .auto-correction-banner.correction, .auto-correction-banner.suggestion {
-        background-color: rgba(243, 244, 246, 0.8) !important;
-    }
-    .banner-title,
-    .banner-action {
-        padding:0; margin:0; /* Reset */
-    }
-    
-    /* Google News Notice */
-    .google-news-notice {
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        background-color: rgba(255, 250, 230, 0.9);
-        border: none;
-        border-radius: 16px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .google-news-notice p:first-child {
-        font-size: 1.1rem;
-        color: #111827;
-        font-weight: 500;
-    }
-    
-    .google-news-notice .cta-button {
-        display: inline-flex;
-        align-items: center;
-        background-color: #4F46E5;
-        color: white;
-        font-weight: 500;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    }
-    
-    .google-news-notice .cta-button:hover {
-        background-color: #4338CA;
-        transform: translateY(-1px);
-    }
-    
-    .google-news-notice .cta-button svg {
-        width: 18px;
-        height: 18px;
-        margin-right: 0.5rem;
-    }
-
-    /* Updated news grid styles */
-    .news-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 3rem;
-    }
-
-    .news-card {
-        background: white;
-        border-radius: 10px;
         overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        transition: all 0.3s ease;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
+        background: #f8f9fa;
+    }
+
+    .carousel-container {
         position: relative;
-    }
-
-    .news-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-
-    .news-card img {
         width: 100%;
-        height: 220px;
-        object-fit: cover;
+        height: 100%;
+        overflow: hidden;
     }
 
-    .news-card .content {
-        padding: 1rem;
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .news-card h3 {
-        margin-top: 0.75rem;
-        font-size: 1.1rem;
-        line-height: 1.4;
-        color: #111827;
-    }
-
-    .news-card h3 a {
-        color: inherit;
-        text-decoration: none;
-        display: block;
-        transition: color 0.2s;
-    }
-
-    .news-card h3 a:hover {
-        color: #4F46E5;
-    }
-
-    .category {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        background: linear-gradient(90deg, #e52e71, #ff8a00);
-        color: white;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin-bottom: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        box-shadow: 0 2px 4px rgba(229, 46, 113, 0.2);
-        position: relative;
-        z-index: 2;
-    }
-    
-    .category.external {
-        background: linear-gradient(90deg, #e52e71, #ff8a00);
-    }
-
-    .card-footer {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: auto;
-        padding-top: 0.5rem;
-        border-top: 1px solid rgba(0,0,0,0.05);
-    }
-
-    .timestamp {
-        color: #6B7280;
-        font-size: 0.75rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .timestamp svg {
-        width: 12px;
-        height: 12px;
-    }
-    
-    .external-tag {
-        display: flex;
-        align-items: center;
-        font-size: 0.75rem;
-        color: #6B7280;
-    }
-    
-    .external-tag svg {
-        width: 14px;
-        height: 14px;
-        margin-right: 0.25rem;
-    }
-
-    /* Likes count styling */
-    .likes-count {
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-        color: #6B7280;
-        font-size: 0.75rem;
-    }
-    
-    .likes-count svg {
-        width: 14px;
-        height: 14px;
-        fill: #ef4444;
-    }
-
-    /* Floating Create Post Button */
-    .floating-action-button {
-        position: fixed;
-        bottom: 2rem;
-        right: 2rem;
-        height: 60px;
-        width: 60px;
-        background-color: #4F46E5;
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-        z-index: 100;
-        transition: all 0.3s ease;
-        border: none;
-    }
-    
-    .floating-action-button:hover {
-        transform: translateY(-4px) scale(1.05);
-        background-color: #4338CA;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
-    }
-    
-    .floating-action-button svg {
-        width: 24px;
-        height: 24px;
-    }
-    
-    .fab-label {
+    .carousel-slide {
         position: absolute;
-        right: 70px;
-        background: #1F2937;
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        font-size: 0.875rem;
-        font-weight: 500;
-        white-space: nowrap;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         opacity: 0;
-        transform: translateX(10px);
-        transition: all 0.3s ease;
-        pointer-events: none;
+        transition: opacity 0.6s ease-in-out;
     }
-    
-    .floating-action-button:hover .fab-label {
+
+    .carousel-slide.active {
         opacity: 1;
-        transform: translateX(0);
     }
 
-    @media (max-width: 992px) {
-        .news-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 768px) {
-        .news-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .featured-article {
-            height: 320px;
-        }
-        
-        .featured-article .content {
-            padding: 20px;
-        }
-        
-        .featured-article h2 a {
-            font-size: 1.4rem;
-            margin: 8px 0;
-            -webkit-line-clamp: 2;
-        }
-        
-        .featured-article .content p.mb-2 {
-            font-size: 0.875rem;
-            -webkit-line-clamp: 2;
-            margin-bottom: 8px;
-        }
-        
-        .floating-action-button {
-            bottom: 1.5rem;
-            right: 1.5rem;
-            height: 56px;
-            width: 56px;
-        }
-        
-        .carousel-controls {
-            display: none;
-        }
-        
-        .carousel-indicators {
-            bottom: 10px;
-        }
-
-        .carousel-controls button {
-            width: 36px;
-            height: 36px;
-        }
-    }
-    
-    .empty-state {
-        text-align: center;
-        padding: 6rem 2rem;
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 16px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    
-    .empty-state h2 {
-        font-size: 2rem;
-        color: #111827;
-        margin-bottom: 1rem;
-    }
-    
-    .empty-state p {
-        font-size: 1.125rem;
-        color: #4B5563;
-        max-width: 500px;
-        margin: 0 auto 1.5rem;
-    }
-    
-    .create-post-btn {
-        display: inline-flex;
-        align-items: center;
-        background: #4F46E5;
-        color: white;
-        font-weight: 500;
-        padding: 0.75rem 1.5rem;
-        border-radius: 9999px;
-        text-decoration: none;
-        transition: all 0.2s;
-    }
-    
-    .create-post-btn:hover {
-        background: #4338CA;
-        transform: translateY(-2px);
-    }
-    
-    .create-post-btn svg {
-        width: 20px;
-        height: 20px;
-        margin-right: 0.5rem;
-    }
-
-    /* Featured News Carousel Styles */
-    .featured-carousel {
-        position: relative;
-        overflow: hidden;
-        margin-bottom: 30px;
-    }
-    
-    .featured-carousel-inner {
-        display: flex;
-        transition: transform 0.5s ease;
-        position: relative;
-    }
-    
-    .featured-article {
-        position: relative;
-        min-width: 100%;
-        height: 400px;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    }
-    
-    .featured-article img {
+    .carousel-slide img {
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
 
-    .featured-article .content {
+    .carousel-slide .overlay {
         position: absolute;
         bottom: 0;
         left: 0;
         right: 0;
-        padding: 20px;
-        background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 50%, transparent 100%);
+        background: linear-gradient(transparent, rgba(0,0,0,0.85));
         color: white;
-        overflow: hidden;
+        padding: 2rem;
     }
-    
+
+    .carousel-slide h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        line-height: 1.3;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .carousel-slide h1 a {
+        color: white;
+        text-decoration: none;
+    }
+
+    .carousel-slide h1 a:hover {
+        text-decoration: underline;
+    }
+
+    .carousel-slide .meta {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    /* Side Carousels */
+    .hero-side-carousel {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f8f9fa;
+    }
+
+    .hero-side-carousel .carousel-slide h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        line-height: 1.3;
+        margin: 0;
+    }
+
+    .hero-side-carousel .carousel-slide h3 a {
+        color: white;
+        text-decoration: none;
+    }
+
+    .hero-side-carousel .carousel-slide h3 a:hover {
+        text-decoration: underline;
+    }
+
+    .hero-side-carousel .carousel-slide .overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,0.8));
+        color: white;
+        padding: 1rem;
+    }
+
+    /* Carousel Controls */
     .carousel-controls {
-        display: flex;
-        justify-content: space-between;
-        width: 100%;
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        padding: 0 1rem;
         z-index: 10;
-        padding: 0 15px;
+        pointer-events: none;
     }
-    
-    .carousel-controls button {
-        background-color: rgba(255, 255, 255, 0.7);
+
+    .carousel-btn {
+        background: rgba(0,0,0,0.3);
         border: none;
         width: 40px;
         height: 40px;
@@ -672,125 +146,515 @@
         justify-content: center;
         cursor: pointer;
         transition: all 0.3s ease;
+        pointer-events: all;
+        backdrop-filter: blur(4px);
+        opacity: 0.7;
     }
-    
-    .carousel-controls button:hover {
-        background-color: white;
+
+    .carousel-btn:hover {
+        background: rgba(0,0,0,0.5);
+        opacity: 1;
+        transform: scale(1.1);
     }
-    
+
+    .carousel-btn svg {
+        width: 16px;
+        height: 16px;
+        color: white;
+    }
+
+    /* Carousel Indicators */
     .carousel-indicators {
         position: absolute;
-        bottom: 15px;
-        left: 0;
-        right: 0;
-        margin: 0 auto;
+        bottom: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
         display: flex;
-        justify-content: center;
-        gap: 8px;
+        gap: 0.5rem;
         z-index: 10;
-        width: 100%;
-        transform: none;
     }
-    
-    .carousel-indicators button {
-        width: 10px;
-        height: 10px;
+
+    .carousel-indicator {
+        width: 8px;
+        height: 8px;
         border-radius: 50%;
-        background-color: rgba(255, 255, 255, 0.5);
+        background: rgba(255,255,255,0.5);
         border: none;
-        padding: 0;
         cursor: pointer;
-    }
-    
-    .carousel-indicators button.active {
-        background-color: white;
-        width: 12px;
-        height: 12px;
-    }
-
-    /* Adjust the category positioning on the featured articles */
-    .featured-article .category {
-        position: absolute;
-        top: 1rem;
-        left: 1rem;
-        margin-bottom: 0;
-        z-index: 2;
-    }
-
-    /* Update category position in news cards */
-    .news-card .category {
-        position: absolute;
-        top: 1rem;
-        left: 1rem;
-        margin-bottom: 0;
-        z-index: 2;
-    }
-
-    /* Add media queries to ensure responsive layout on all screens */
-    @media (max-width: 480px) {
-        .news-card {
-            max-width: 100%;
-        }
-        
-        .news-card img {
-            height: 180px;
-        }
-        
-        .category {
-            font-size: 0.7rem;
-            padding: 0.2rem 0.5rem;
-        }
-        
-        .news-card h3 {
-            font-size: 1rem;
-        }
-    }
-
-    /* Advertisement section styles */
-    .ad-category-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-
-    .all-classifieds-card {
-        background: white;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         transition: all 0.3s ease;
     }
 
-    .all-classifieds-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    .carousel-indicator.active {
+        background: white;
+        transform: scale(1.3);
     }
 
-    .all-classifieds-card a:hover {
-        background-color: #F9FAFB;
-        border-color: #10B981;
+    /* Side carousel indicators (smaller) */
+    .hero-side-carousel .carousel-indicators {
+        bottom: 0.75rem;
+    }
+
+    .hero-side-carousel .carousel-indicator {
+        width: 6px;
+        height: 6px;
+    }
+
+    /* Content Grid */
+    .content-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    /* News Cards */
+    .news-card {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .news-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+
+    .news-card img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+    }
+
+    .news-card .content {
+        padding: 1.25rem;
+    }
+
+    .news-card h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        line-height: 1.4;
+        margin-bottom: 0.75rem;
+        color: #1a1a1a;
+    }
+
+    .news-card h3 a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .news-card h3 a:hover {
+        color: #2563eb;
+    }
+
+    .news-card .excerpt {
+        font-size: 0.9rem;
+        color: #666;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .news-card .meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8rem;
+        color: #888;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        height: fit-content;
+        position: sticky;
+        top: 2rem;
+    }
+
+    .sidebar h2 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #1a1a1a;
+        border-bottom: 2px solid #2563eb;
+        padding-bottom: 0.5rem;
+    }
+
+    .sidebar-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .sidebar-item:last-child {
+        border-bottom: none;
+    }
+
+    .sidebar-item img {
+        width: 80px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+
+    .sidebar-item .content {
+        flex: 1;
+    }
+
+    .sidebar-item h4 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        line-height: 1.3;
+        margin-bottom: 0.5rem;
+        color: #1a1a1a;
+    }
+
+    .sidebar-item h4 a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .sidebar-item h4 a:hover {
+        color: #2563eb;
+    }
+
+    .sidebar-item .meta {
+        font-size: 0.75rem;
+        color: #888;
+    }
+
+    /* Category Tags */
+    .category-tag {
+        display: inline-block;
+        background: #2563eb;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.75rem;
+    }
+
+    .category-tag.external {
+        background: #dc2626;
+    }
+
+    /* Advertisement Cards */
+    .ad-card {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 2px solid #f59e0b;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.2s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ad-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #f59e0b, #d97706);
+    }
+
+    .ad-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);
+        border-color: #d97706;
+    }
+
+    .ad-badge {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        background: #dc2626;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .ad-card h4 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        color: #92400e;
+        margin-top: 0.5rem;
+    }
+
+    .ad-card p {
+        font-size: 0.9rem;
+        color: #78350f;
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
+    }
+
+    .ad-meta {
+        font-size: 0.75rem;
+        color: #a16207;
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    .ad-card .ad-link {
+        display: inline-block;
+        background: #dc2626;
+        color: white;
+        padding: 0.6rem 1.2rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+    .ad-card .ad-link:hover {
+        background: #b91c1c;
         transform: translateY(-1px);
     }
 
-    .floating-action-button:hover + a span,
-    a[href*="advertisement-create"]:hover span {
-        opacity: 1;
-        transform: translateX(0);
+    /* Correction banners */
+    .correction-suggestion-banner {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 8px;
+        background-color: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        font-size: 0.9rem;
+        color: #92400e;
     }
 
-    /* Responsive adjustments for the all-classifieds card */
-    @media (max-width: 992px) {
-        .all-classifieds-card {
-            grid-column: span 2;
+    .correction-suggestion-banner strong {
+        font-weight: 600;
+    }
+
+    .correction-suggestion-banner button {
+        background: none;
+        border: none;
+        color: #1d4ed8;
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: inherit;
+    }
+
+    /* Google News Notice */
+    .google-news-notice {
+        background: #dbeafe;
+        border: 1px solid #93c5fd;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .google-news-notice p {
+        margin: 0 0 0.5rem 0;
+        color: #1e40af;
+    }
+
+    .google-news-notice .cta-button {
+        display: inline-flex;
+        align-items: center;
+        background: #2563eb;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .google-news-notice .cta-button:hover {
+        background: #1d4ed8;
+    }
+
+    .google-news-notice .cta-button svg {
+        width: 16px;
+        height: 16px;
+        margin-right: 0.5rem;
+    }
+    
+    /* Floating Action Button */
+    .floating-action-button {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 60px;
+        height: 60px;
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        cursor: pointer;
+        transition: all 0.2s;
+        z-index: 1000;
+    }
+
+    .floating-action-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+    }
+
+    .floating-action-button svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .empty-state h2 {
+        font-size: 1.5rem;
+        color: #1a1a1a;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+        color: #666;
+        margin-bottom: 1.5rem;
+    }
+
+    .create-post-btn {
+        display: inline-flex;
+        align-items: center;
+        background: #2563eb;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .create-post-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .create-post-btn svg {
+        width: 20px;
+        height: 20px;
+        margin-right: 0.5rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .news-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .sidebar {
+            position: static;
+            margin-top: 2rem;
+        }
+        
+        .hero-section {
+            grid-template-columns: 1fr;
+            grid-template-rows: 300px 150px 150px;
+            height: auto;
+        }
+        
+        .hero-main-carousel {
+            grid-row: span 1;
         }
     }
 
     @media (max-width: 768px) {
-        .all-classifieds-card {
-            grid-column: span 1;
+        .hero-section {
+            grid-template-columns: 1fr;
+            grid-template-rows: 250px 120px 120px;
         }
         
-        .all-classifieds-card .content > div:nth-child(2) {
+        .content-grid {
             grid-template-columns: 1fr;
+        }
+        
+        .floating-action-button {
+            bottom: 1rem;
+            right: 1rem;
+            width: 50px;
+            height: 50px;
+        }
+        
+        .floating-action-button svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .carousel-btn {
+            width: 35px;
+            height: 35px;
+        }
+        
+        .carousel-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .carousel-slide .overlay {
+            padding: 1rem;
+        }
+        
+        .carousel-slide h1 {
+            font-size: 1.4rem;
+        }
+        
+        .hero-side-carousel .carousel-slide h3 {
+            font-size: 0.9rem;
+        }
+        
+        .news-card .content {
+            padding: 1rem;
+        }
+        
+        .sidebar {
+            padding: 1rem;
+        }
+        
+        .carousel-controls {
+            padding: 0 0.5rem;
+        }
+        
+        .carousel-btn {
+            width: 30px;
+            height: 30px;
+        }
+        
+        .carousel-btn svg {
+            width: 12px;
+            height: 12px;
+        }
+    }
+
+
+
        
 </style>
 {% endblock %}
@@ -816,7 +680,7 @@
     {% if showing_google_news %}
     <div class="google-news-notice">
         <p>No local news generated for {{ area.name|title }} yet. We're showing news from Google News instead.</p>
-        <p class="text-sm">
+        <p>
             <a href="{% url 'post-create' %}?area={{ area.name }}" class="cta-button">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
@@ -828,372 +692,546 @@
     {% endif %}
     
     {% if articles %}
-        <!-- Featured News Carousel Section -->
-        <section class="featured-carousel">
-            <div class="carousel-controls">
-                <button class="prev-btn" aria-label="Previous slide">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M15 18l-6-6 6-6"/>
-                    </svg>
-                </button>
-                <button class="next-btn" aria-label="Next slide">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 18l6-6-6-6"/>
-                    </svg>
-                </button>
+        <!-- Hero Section with 3 Carousels -->
+        {% if articles|length >= 3 %}
+        <section class="hero-section">
+            <!-- Main Carousel (Left Side) -->
+            <div class="hero-main-carousel">
+                <div class="carousel-container" data-carousel="main">
+                    {% if articles|length >= 5 %}
+                        {% for article in articles|slice:":5" %}
+                        <div class="carousel-slide{% if forloop.first %} active{% endif %}">
+                            <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                            <div class="overlay">
+                                {% if article.is_external %}
+                                    <span class="category-tag external">Google News</span>
+                                {% else %}
+                                    <span class="category-tag">{{ article.category|title }}</span>
+                                {% endif %}
+                                <h1>
+                                    {% if article.is_external %}
+                                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                                            {{ article.title }}
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                                            {{ article.title }}
+                                        </a>
+                                    {% endif %}
+                                </h1>
+                                <div class="meta">
+                                    {% if article.is_external %}
+                                        {{ article.published_at|date:"F j, Y" }}
+                                    {% else %}
+                                        {{ article.created_at|date:"F j, Y" }} • {{ article.likes|default:0 }} likes
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Fallback: repeat articles if less than 5 -->
+                        {% for article in articles %}
+                        <div class="carousel-slide{% if forloop.first %} active{% endif %}">
+                            <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                            <div class="overlay">
+                                {% if article.is_external %}
+                                    <span class="category-tag external">Google News</span>
+                                {% else %}
+                                    <span class="category-tag">{{ article.category|title }}</span>
+                                {% endif %}
+                                <h1>
+                                    {% if article.is_external %}
+                                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                                            {{ article.title }}
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                                            {{ article.title }}
+                                        </a>
+                                    {% endif %}
+                                </h1>
+                                <div class="meta">
+                                    {% if article.is_external %}
+                                        {{ article.published_at|date:"F j, Y" }}
+                                    {% else %}
+                                        {{ article.created_at|date:"F j, Y" }} • {{ article.likes|default:0 }} likes
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <!-- Main Carousel Controls (only show if more than 1 slide) -->
+                {% if articles|length > 1 %}
+                <div class="carousel-controls">
+                    <button class="carousel-btn prev-btn" data-carousel="main" aria-label="Previous slide">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <button class="carousel-btn next-btn" data-carousel="main" aria-label="Next slide">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Main Carousel Indicators -->
+                <div class="carousel-indicators">
+                    {% if articles|length >= 5 %}
+                        {% for article in articles|slice:":5" %}
+                        <button class="carousel-indicator{% if forloop.first %} active{% endif %}" data-carousel="main" data-slide="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
+                        {% endfor %}
+                    {% else %}
+                        {% for article in articles %}
+                        <button class="carousel-indicator{% if forloop.first %} active{% endif %}" data-carousel="main" data-slide="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
             
-            <div class="featured-carousel-inner">
-                {% for article in articles|slice:":4" %}
-                    <article class="featured-article" data-index="{{ forloop.counter0 }}">
-                        <img src="{{ article.cover_image }}" alt="{{ article.title }}">
-                            {% if article.is_external %}
-                                <span class="category external">Google News</span>
-                            {% else %}
-                                <span class="category">Featured</span>
+            <!-- Top Side Carousel -->
+            {% if articles|length >= 2 %}
+            <div class="hero-side-carousel">
+                <div class="carousel-container" data-carousel="side1">
+                    {% if articles|length >= 8 %}
+                        {% for article in articles|slice:"5:8" %}
+                        <div class="carousel-slide{% if forloop.first %} active{% endif %}">
+                            <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                            <div class="overlay">
+                                {% if article.is_external %}
+                                    <span class="category-tag external">Google News</span>
+                                {% else %}
+                                    <span class="category-tag">{{ article.category|title }}</span>
+                                {% endif %}
+                                <h3>
+                                    {% if article.is_external %}
+                                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                                            {{ article.title }}
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                                            {{ article.title }}
+                                        </a>
+                                    {% endif %}
+                                </h3>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Show second article if available -->
+                        {% with article=articles.1 %}
+                        <div class="carousel-slide active">
+                            <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                            <div class="overlay">
+                                {% if article.is_external %}
+                                    <span class="category-tag external">Google News</span>
+                                {% else %}
+                                    <span class="category-tag">{{ article.category|title }}</span>
+                                {% endif %}
+                                <h3>
+                                    {% if article.is_external %}
+                                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                                            {{ article.title }}
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                                            {{ article.title }}
+                                        </a>
+                                    {% endif %}
+                                </h3>
+                            </div>
+                        </div>
+                        {% endwith %}
+                    {% endif %}
+                </div>
+                
+                <!-- Side Carousel 1 Controls (only if enough articles) -->
+                {% if articles|length >= 8 %}
+                <div class="carousel-controls">
+                    <button class="carousel-btn prev-btn" data-carousel="side1" aria-label="Previous slide">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <button class="carousel-btn next-btn" data-carousel="side1" aria-label="Next slide">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Side Carousel 1 Indicators -->
+                <div class="carousel-indicators">
+                    {% for article in articles|slice:"5:8" %}
+                    <button class="carousel-indicator{% if forloop.first %} active{% endif %}" data-carousel="side1" data-slide="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Bottom Side Carousel -->
+            {% if articles|length >= 3 %}
+            <div class="hero-side-carousel">
+                <div class="carousel-container" data-carousel="side2">
+                    {% if articles|length >= 11 %}
+                        {% for article in articles|slice:"8:11" %}
+                        <div class="carousel-slide{% if forloop.first %} active{% endif %}">
+                            <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                            <div class="overlay">
+                                {% if article.is_external %}
+                                    <span class="category-tag external">Google News</span>
+                                {% else %}
+                                    <span class="category-tag">{{ article.category|title }}</span>
+                                {% endif %}
+                                <h3>
+                                    {% if article.is_external %}
+                                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                                            {{ article.title }}
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                                            {{ article.title }}
+                                        </a>
+                                    {% endif %}
+                                </h3>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Show third article if available -->
+                        {% if articles.2 %}
+                        {% with article=articles.2 %}
+                        <div class="carousel-slide active">
+                            <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                            <div class="overlay">
+                                {% if article.is_external %}
+                                    <span class="category-tag external">Google News</span>
+                                {% else %}
+                                    <span class="category-tag">{{ article.category|title }}</span>
+                                {% endif %}
+                                <h3>
+                                    {% if article.is_external %}
+                                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                                            {{ article.title }}
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                                            {{ article.title }}
+                                        </a>
+                                    {% endif %}
+                                </h3>
+                            </div>
+                        </div>
+                        {% endwith %}
+                        {% endif %}
+                    {% endif %}
+                </div>
+                
+                <!-- Side Carousel 2 Controls (only if enough articles) -->
+                {% if articles|length >= 11 %}
+                <div class="carousel-controls">
+                    <button class="carousel-btn prev-btn" data-carousel="side2" aria-label="Previous slide">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <button class="carousel-btn next-btn" data-carousel="side2" aria-label="Next slide">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Side Carousel 2 Indicators -->
+                <div class="carousel-indicators">
+                    {% for article in articles|slice:"8:11" %}
+                    <button class="carousel-indicator{% if forloop.first %} active{% endif %}" data-carousel="side2" data-slide="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </section>
+        {% endif %}
+        
+        <!-- Main Content Layout -->
+        <div class="news-container">
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <!-- Content Grid -->
+                <section class="content-grid">
+                    {% for article in articles %}
+                        <article class="news-card">
+                            <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                            <div class="content">
+                                {% if article.is_external %}
+                                    <span class="category-tag external">Google News</span>
+                                {% else %}
+                                    <span class="category-tag">{{ article.category|title }}</span>
+                                {% endif %}
+                                <h3>
+                                    {% if article.is_external %}
+                                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                                            {{ article.title }}
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                                            {{ article.title }}
+                                        </a>
+                                    {% endif %}
+                                </h3>
+                                <p class="excerpt">{{ article.content|truncatechars:120 }}</p>
+                                <div class="meta">
+                                    <span>
+                                        {% if article.is_external %}
+                                            {{ article.published_at|date:"M j" }}
+                                        {% else %}
+                                            {{ article.created_at|date:"M j" }}
+                                        {% endif %}
+                                    </span>
+                                    {% if not article.is_external %}
+                                        <span>{{ article.likes|default:0 }} likes</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </article>
+                        
+                        <!-- Insert ad every 3 articles -->
+                        {% if forloop.counter|divisibleby:3 and ad_categories_list %}
+                            {% if forloop.counter == 3 and ad_categories_list.0 %}
+                                <article class="ad-card">
+                                    <div class="ad-badge">Sponsored</div>
+                                    <h4>{{ ad_categories_list.0.0|title }} Classifieds</h4>
+                                    {% if ad_categories_list.0.1 %}
+                                        <p>{{ ad_categories_list.0.1.0.content|truncatechars:80 }}</p>
+                                        <small class="ad-meta">by {{ ad_categories_list.0.1.0.advertiser_name|default:"Anonymous" }} • {{ ad_categories_list.0.1.0.created_at|timesince }} ago</small>
+                                    {% else %}
+                                        <p>Browse local {{ ad_categories_list.0.0|lower }} listings in {{ area.name|title }}.</p>
+                                    {% endif %}
+                                    <a href="{% url 'advertisements_by_category' area_name=area.name category=ad_categories_list.0.0 %}" class="ad-link">
+                                        View {{ ad_categories_list.0.1|length }} listing{{ ad_categories_list.0.1|length|pluralize }} →
+                                    </a>
+                                </article>
+                            {% elif forloop.counter == 6 and ad_categories_list.1 %}
+                                <article class="ad-card">
+                                    <div class="ad-badge">Sponsored</div>
+                                    <h4>{{ ad_categories_list.1.0|title }} Classifieds</h4>
+                                    {% if ad_categories_list.1.1 %}
+                                        <p>{{ ad_categories_list.1.1.0.content|truncatechars:80 }}</p>
+                                        <small class="ad-meta">by {{ ad_categories_list.1.1.0.advertiser_name|default:"Anonymous" }} • {{ ad_categories_list.1.1.0.created_at|timesince }} ago</small>
+                                    {% else %}
+                                        <p>Browse local {{ ad_categories_list.1.0|lower }} listings in {{ area.name|title }}.</p>
+                                    {% endif %}
+                                    <a href="{% url 'advertisements_by_category' area_name=area.name category=ad_categories_list.1.0 %}" class="ad-link">
+                                        View {{ ad_categories_list.1.1|length }} listing{{ ad_categories_list.1.1|length|pluralize }} →
+                                    </a>
+                                </article>
+                            {% elif forloop.counter == 9 and ad_categories_list.2 %}
+                                <article class="ad-card">
+                                    <div class="ad-badge">Sponsored</div>
+                                    <h4>{{ ad_categories_list.2.0|title }} Classifieds</h4>
+                                    {% if ad_categories_list.2.1 %}
+                                        <p>{{ ad_categories_list.2.1.0.content|truncatechars:80 }}</p>
+                                        <small class="ad-meta">by {{ ad_categories_list.2.1.0.advertiser_name|default:"Anonymous" }} • {{ ad_categories_list.2.1.0.created_at|timesince }} ago</small>
+                                    {% else %}
+                                        <p>Browse local {{ ad_categories_list.2.0|lower }} listings in {{ area.name|title }}.</p>
+                                    {% endif %}
+                                    <a href="{% url 'advertisements_by_category' area_name=area.name category=ad_categories_list.2.0 %}" class="ad-link">
+                                        View {{ ad_categories_list.2.1|length }} listing{{ ad_categories_list.2.1|length|pluralize }} →
+                                    </a>
+                                </article>
                             {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </section>
+            </main>
+            
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <h2>Latest Updates</h2>
+                {% for article in articles|slice:":8" %}
+                    <div class="sidebar-item">
+                        <img src="{{ article.cover_image }}" alt="{{ article.title }}">
                         <div class="content">
-                            <h2 class="text-2xl sm:text-3xl font-bold mb-2">
+                            <h4>
                                 {% if article.is_external %}
                                     <a href="{{ article.external_url }}" target="_blank" rel="noopener">
-                                        {{ article.title }}
+                                        {{ article.title|truncatechars:60 }}
                                     </a>
                                 {% else %}
                                     <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
-                                        {{ article.title }}
+                                        {{ article.title|truncatechars:60 }}
                                     </a>
                                 {% endif %}
-                            </h2>
-                            <p class="mb-2 text-gray-200 line-clamp-2 hidden sm:block">{{ article.content|truncatechars:150 }}</p>
-                            <p class="timestamp">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
-                                    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
-                                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
-                                </svg>
+                            </h4>
+                            <div class="meta">
                                 {% if article.is_external %}
-                                    {{ article.published_at|date:"jS F" }}
+                                    {{ article.published_at|date:"M j" }} • Google News
                                 {% else %}
-                                    {{ article.created_at|date:"jS F" }}
+                                    {{ article.created_at|date:"M j" }} • {{ article.likes|default:0 }} likes
                                 {% endif %}
-                            </p>
-                            {% if not article.is_external %}
-                            <div class="likes-count">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                                </svg>
-                                <span>{{ article.likes|default:0 }}</span>
                             </div>
-                            {% endif %}
-                        </div>
-                    </article>
-                {% endfor %}
-            </div>
-            
-            <div class="carousel-indicators">
-                {% for article in articles|slice:":4" %}
-                    <button class="indicator{% if forloop.first %} active{% endif %}" data-index="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
-                {% endfor %}
-            </div>
-        </section>
-        
-        <!-- News Grid Section - Show articles mixed with classified ads -->
-        <section class="news-grid">
-            {% for article in articles %}
-                <article class="news-card">
-                    <img src="{{ article.cover_image }}" alt="{{ article.title }}">
-                        {% if article.is_external %}
-                            <span class="category external">Google News</span>
-                        {% else %}
-                            <span class="category">{{ article.category }}</span>
-                        {% endif %}
-                    <div class="content">
-                        <h3>
-                            {% if article.is_external %}
-                                <a href="{{ article.external_url }}" target="_blank" rel="noopener">
-                                    {{ article.title }}
-                                </a>
-                            {% else %}
-                                <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
-                                    {{ article.title }}
-                                </a>
-                            {% endif %}
-                        </h3>
-                        <div class="card-footer">
-                            <p class="timestamp">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
-                                    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
-                                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
-                                </svg>
-                                {% if article.is_external %}
-                                    {{ article.published_at|date:"jS F" }}
-                                {% else %}
-                                    {{ article.created_at|date:"jS F" }}
-                                {% endif %}
-                            </p>
-                            {% if article.is_external %}
-                            <span class="external-tag">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                                </svg>
-                                External
-                            </span>
-                            {% endif %}
-                            
-                            {% if not article.is_external %}
-                            <div class="likes-count">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                                </svg>
-                                <span>{{ article.likes|default:0 }}</span>
-                            </div>
-                            {% endif %}
                         </div>
                     </div>
-                </article>
+                {% endfor %}
                 
-                <!-- Insert classified ad card every 3 articles -->
-                {% if forloop.counter|divisibleby:3 and ad_categories_list %}
-                    {% if forloop.counter == 3 and ad_categories_list.0 %}
-                        <article class="classified-card">
-                            <div class="classified-content">
-                                <div class="classified-header">
-                                    <h4>{{ ad_categories_list.0.0|title }}</h4>
-                                    <span class="classified-count">{{ ad_categories_list.0.1|length }} listing{{ ad_categories_list.0.1|length|pluralize }}</span>
-                                </div>
-                                {% if ad_categories_list.0.1 %}
-                                    <div class="classified-preview">
-                                        <p>{{ ad_categories_list.0.1.0.content|truncatechars:100 }}</p>
-                                        <small>by {{ ad_categories_list.0.1.0.advertiser_name|default:"Anonymous" }} • {{ ad_categories_list.0.1.0.created_at|timesince }} ago</small>
-                                    </div>
-                                {% endif %}
-                                <a href="{% url 'advertisements_by_category' area_name=area.name category=ad_categories_list.0.0 %}" class="classified-link">
-                                    View all {{ ad_categories_list.0.0|title }} →
-                                </a>
+                <!-- Classified Ads in Sidebar -->
+                {% if ad_categories_list %}
+                    <h2 style="margin-top: 2rem;">Classifieds</h2>
+                    {% for category_data in ad_categories_list|slice:":3" %}
+                        <div class="sidebar-item" style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
+                            <div class="content">
+                                <h4>
+                                    <a href="{% url 'advertisements_by_category' area_name=area.name category=category_data.0 %}">
+                                        {{ category_data.0|title }}
+                                    </a>
+                                </h4>
+                                <div class="meta">{{ category_data.1|length }} listing{{ category_data.1|length|pluralize }}</div>
                             </div>
-                        </article>
-                    {% elif forloop.counter == 6 and ad_categories_list.1 %}
-                        <article class="classified-card">
-                            <div class="classified-content">
-                                <div class="classified-header">
-                                    <h4>{{ ad_categories_list.1.0|title }}</h4>
-                                    <span class="classified-count">{{ ad_categories_list.1.1|length }} listing{{ ad_categories_list.1.1|length|pluralize }}</span>
-                                </div>
-                                {% if ad_categories_list.1.1 %}
-                                    <div class="classified-preview">
-                                        <p>{{ ad_categories_list.1.1.0.content|truncatechars:100 }}</p>
-                                        <small>by {{ ad_categories_list.1.1.0.advertiser_name|default:"Anonymous" }} • {{ ad_categories_list.1.1.0.created_at|timesince }} ago</small>
-                                    </div>
-                                {% endif %}
-                                <a href="{% url 'advertisements_by_category' area_name=area.name category=ad_categories_list.1.0 %}" class="classified-link">
-                                    View all {{ ad_categories_list.1.0|title }} →
-                                </a>
-                            </div>
-                        </article>
-                    {% elif forloop.counter == 9 and ad_categories_list.2 %}
-                        <article class="classified-card">
-                            <div class="classified-content">
-                                <div class="classified-header">
-                                    <h4>{{ ad_categories_list.2.0|title }}</h4>
-                                    <span class="classified-count">{{ ad_categories_list.2.1|length }} listing{{ ad_categories_list.2.1|length|pluralize }}</span>
-                                </div>
-                                {% if ad_categories_list.2.1 %}
-                                    <div class="classified-preview">
-                                        <p>{{ ad_categories_list.2.1.0.content|truncatechars:100 }}</p>
-                                        <small>by {{ ad_categories_list.2.1.0.advertiser_name|default:"Anonymous" }} • {{ ad_categories_list.2.1.0.created_at|timesince }} ago</small>
-                                    </div>
-                                {% endif %}
-                                <a href="{% url 'advertisements_by_category' area_name=area.name category=ad_categories_list.2.0 %}" class="classified-link">
-                                    View all {{ ad_categories_list.2.0|title }} →
-                                </a>
-                            </div>
-                        </article>
-                    {% endif %}
-                {% endif %}
-            {% endfor %}
-        </section>
-        
-        <!-- Show remaining classified categories if no articles to mix with -->
-        {% if ad_categories_list %}
-            <section class="classifieds-section">
-                <h3>Local Classifieds</h3>
-                <div class="classifieds-grid">
-                    {% for category_name, ads in ad_categories_list %}
-                        <article class="classified-card">
-                            <div class="classified-content">
-                                <div class="classified-header">
-                                    <h4>{{ category_name|title }}</h4>
-                                    <span class="classified-count">{{ ads|length }} listing{{ ads|length|pluralize }}</span>
-                                </div>
-                                {% if ads %}
-                                    <div class="classified-preview">
-                                        <p>{{ ads.0.content|truncatechars:100 }}</p>
-                                        <small>by {{ ads.0.advertiser_name|default:"Anonymous" }} • {{ ads.0.created_at|timesince }} ago</small>
-                                    </div>
-                                {% endif %}
-                                <a href="{% url 'advertisements_by_category' area_name=area.name category=category_name %}" class="classified-link">
-                                    View all {{ category_name|title }} →
-                                </a>
-                            </div>
-                        </article>
+                        </div>
                     {% endfor %}
-                </div>
-            </section>
-        {% endif %}
+                {% endif %}
+            </aside>
+        </div>
     {% else %}
         <!-- No articles available -->
-        {% if ad_categories_list %}
-            <section class="classifieds-section">
-                <h3>Local Classifieds</h3>
-                <div class="classifieds-grid">
-                    {% for category_name, ads in ad_categories_list %}
-                        <article class="classified-card">
-                            <div class="classified-content">
-                                <div class="classified-header">
-                                    <h4>{{ category_name|title }}</h4>
-                                    <span class="classified-count">{{ ads|length }} listing{{ ads|length|pluralize }}</span>
-                                </div>
-                                {% if ads %}
-                                    <div class="classified-preview">
-                                        <p>{{ ads.0.content|truncatechars:100 }}</p>
-                                        <small>by {{ ads.0.advertiser_name|default:"Anonymous" }} • {{ ads.0.created_at|timesince }} ago</small>
-                                    </div>
-                                {% endif %}
-                                <a href="{% url 'advertisements_by_category' area_name=area.name category=category_name %}" class="classified-link">
-                                    View all {{ category_name|title }} →
-                                </a>
-                            </div>
-                        </article>
-                    {% endfor %}
-                </div>
-            </section>
-        {% else %}
-            <div class="empty-state">
-                <h2>No news found</h2>
-                <p>Be the first to create content for this community and help generate local news.</p>
-                <a href="{% url 'post-create' %}?area={{ area.name }}" class="create-post-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-                    </svg>
-                    Create a post
-                </a>
-            </div>
-        {% endif %}
+        <div class="empty-state">
+            <h2>No news found</h2>
+            <p>Be the first to create content for this community and help generate local news.</p>
+            <a href="{% url 'post-create' %}?area={{ area.name }}" class="create-post-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                Create a post
+            </a>
+        </div>
     {% endif %}
     
-
-    
-    <!-- Floating Action Buttons -->
-    <div style="position: fixed; bottom: 2rem; right: 2rem; display: flex; flex-direction: column; gap: 1rem; z-index: 100;">
-        <a href="{% url 'post-create' %}?area={{ area.name }}" class="floating-action-button">
-            <span class="fab-label">Share Your Story</span>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-            </svg>
-        </a>
-        <a href="{% url 'advertisement-create' %}?area={{ area.name }}" style="height: 60px; width: 60px; background-color: #10B981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2); transition: all 0.3s ease; text-decoration: none; position: relative;">
-            <span style="position: absolute; right: 70px; background: #1F2937; color: white; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; white-space: nowrap; opacity: 0; transform: translateX(10px); transition: all 0.3s ease; pointer-events: none;">Post Ad</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
-                <path d="M5 6a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1zm0 3a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1z"/>
-            </svg>
-        </a>
-    </div>
-
-    <!-- Temporary CTA Popup -->
-    <div id="ctaPopup" class="cta-popup">
-        <p>Help grow news for <strong>{{ area.name|title }}</strong>!</p>
-        <a href="{% url 'post-create' %}?area={{ area.name }}" class="popup-action-btn">Share a Story</a>
-        <button type="button" class="close-btn" aria-label="Close" onclick="document.getElementById('ctaPopup').classList.remove('show');">&times;</button>
-    </div>
+    <!-- Floating Action Button -->
+    <a href="{% url 'post-create' %}?area={{ area.name }}" class="floating-action-button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+    </a>
 
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Temporary CTA Popup Logic
-    document.addEventListener('DOMContentLoaded', function() {
-        const ctaPopup = document.getElementById('ctaPopup');
-        if (ctaPopup) {
-            // Show popup after a short delay
-            setTimeout(() => {
-                ctaPopup.classList.add('show');
-            }, 2000); // Show after 2 seconds
-
-            // Hide popup after some time if not closed manually
-            setTimeout(() => {
-                ctaPopup.classList.remove('show');
-            }, 10000); // Hide after 10 seconds (2s delay + 8s visible)
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all carousels
+    const carousels = ['main', 'side1', 'side2'];
+    const carouselStates = {};
+    
+    carousels.forEach(carouselId => {
+        const container = document.querySelector(`[data-carousel="${carouselId}"]`);
+        if (!container) return;
+        
+        const slides = container.querySelectorAll('.carousel-slide');
+        const indicators = document.querySelectorAll(`[data-carousel="${carouselId}"].carousel-indicator`);
+        const prevBtn = document.querySelector(`[data-carousel="${carouselId}"].prev-btn`);
+        const nextBtn = document.querySelector(`[data-carousel="${carouselId}"].next-btn`);
+        
+        // Skip carousel initialization if only 1 slide or no slides
+        if (slides.length <= 1) {
+            // Hide controls and indicators for single slide
+            if (prevBtn && nextBtn) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+            }
+            const indicatorContainer = container.parentElement.querySelector('.carousel-indicators');
+            if (indicatorContainer && slides.length <= 1) {
+                indicatorContainer.style.display = 'none';
+            }
+            return;
         }
         
-        // Carousel functionality
-        const carousel = document.querySelector('.featured-carousel-inner');
-        const slides = document.querySelectorAll('.featured-article');
-        const prevBtn = document.querySelector('.prev-btn');
-        const nextBtn = document.querySelector('.next-btn');
-        const indicators = document.querySelectorAll('.carousel-indicators button');
+        // Initialize carousel state
+        carouselStates[carouselId] = {
+            currentSlide: 0,
+            totalSlides: slides.length,
+            slides: slides,
+            indicators: indicators,
+            autoSlideInterval: null
+        };
         
-        if (carousel && slides.length > 0) {
-            let currentIndex = 0;
-            const slideCount = slides.length;
+        function showSlide(carouselId, index) {
+            const state = carouselStates[carouselId];
             
-            // Function to update carousel position
-            function updateCarousel() {
-                carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
+            // Hide all slides and deactivate indicators
+            state.slides.forEach(slide => slide.classList.remove('active'));
+            state.indicators.forEach(indicator => indicator.classList.remove('active'));
+            
+            // Show current slide and activate indicator
+            state.slides[index].classList.add('active');
+            if (state.indicators[index]) {
+                state.indicators[index].classList.add('active');
+            }
+        }
+        
+        function nextSlide(carouselId) {
+            const state = carouselStates[carouselId];
+            state.currentSlide = (state.currentSlide + 1) % state.totalSlides;
+            showSlide(carouselId, state.currentSlide);
+        }
+        
+        function prevSlide(carouselId) {
+            const state = carouselStates[carouselId];
+            state.currentSlide = (state.currentSlide - 1 + state.totalSlides) % state.totalSlides;
+            showSlide(carouselId, state.currentSlide);
+        }
+        
+        // Event listeners for navigation buttons
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => nextSlide(carouselId));
+        }
+        
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => prevSlide(carouselId));
+        }
+        
+        // Event listeners for indicators
+        indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', () => {
+                carouselStates[carouselId].currentSlide = index;
+                showSlide(carouselId, index);
+            });
+        });
+        
+        // Auto-advance carousel (different intervals for each) - only if more than 1 slide
+        if (slides.length > 1) {
+            const intervals = { main: 6000, side1: 4000, side2: 5000 };
+            carouselStates[carouselId].autoSlideInterval = setInterval(() => {
+                nextSlide(carouselId);
+            }, intervals[carouselId]);
+            
+            // Pause auto-advance on hover
+            const carouselParent = container.closest('.hero-main-carousel, .hero-side-carousel');
+            if (carouselParent) {
+                carouselParent.addEventListener('mouseenter', () => {
+                    if (carouselStates[carouselId] && carouselStates[carouselId].autoSlideInterval) {
+                        clearInterval(carouselStates[carouselId].autoSlideInterval);
+                    }
+                });
                 
-                // Update indicators
-                indicators.forEach((indicator, index) => {
-                    if (index === currentIndex) {
-                        indicator.classList.add('active');
-                    } else {
-                        indicator.classList.remove('active');
+                carouselParent.addEventListener('mouseleave', () => {
+                    if (carouselStates[carouselId] && slides.length > 1) {
+                        carouselStates[carouselId].autoSlideInterval = setInterval(() => {
+                            nextSlide(carouselId);
+                        }, intervals[carouselId]);
                     }
                 });
             }
-            
-            // Event listeners for next and previous buttons
-            if (nextBtn) {
-                nextBtn.addEventListener('click', () => {
-                    currentIndex = (currentIndex + 1) % slideCount;
-                    updateCarousel();
-                });
-            }
-            
-            if (prevBtn) {
-                prevBtn.addEventListener('click', () => {
-                    currentIndex = (currentIndex - 1 + slideCount) % slideCount;
-                    updateCarousel();
-                });
-            }
-            
-            // Event listeners for indicators
-            indicators.forEach((indicator, index) => {
-                indicator.addEventListener('click', () => {
-                    currentIndex = index;
-                    updateCarousel();
-                });
-            });
-            
-            // Auto-advance carousel every 5 seconds
-            let carouselInterval = setInterval(() => {
-                currentIndex = (currentIndex + 1) % slideCount;
-                updateCarousel();
-            }, 5000);
-            
-            // Pause auto-advance when hovering over carousel
-            carousel.addEventListener('mouseenter', () => {
-                clearInterval(carouselInterval);
-            });
-            
-            // Resume auto-advance when mouse leaves carousel
-            carousel.addEventListener('mouseleave', () => {
-                carouselInterval = setInterval(() => {
-                    currentIndex = (currentIndex + 1) % slideCount;
-                    updateCarousel();
-                }, 5000);
-            });
         }
     });
+});
 </script>
 {% endblock %}
+

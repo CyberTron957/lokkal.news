@@ -742,7 +742,7 @@
                                     id="area" 
                                     name="area" 
                                     class="form-control" 
-                                    value="{{ form.area.value|default:request.GET.area|default:'' }}" 
+                                    value="{% if form.area.value %}{{ form.area.value }}{% elif request.GET.area %}{{ request.GET.area }}{% endif %}" 
                                     placeholder="Enter your area or neighborhood" 
                                     autocomplete="off"
                                     required
