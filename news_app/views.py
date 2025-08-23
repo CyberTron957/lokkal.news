@@ -509,12 +509,12 @@ def categorize_advertisement(content, max_retries=3, retry_delay=2):
             }
 
             model = genai.GenerativeModel(
-                'gemini-2.5-flash',
+                'gemini-2.0-flash',
                 generation_config={"response_mime_type": "application/json",
                                    "response_schema": schema}
             )
 
-            prompt = f"Categorize this advertisement into one of these categories: 'jobs', 'housing', 'for-sale', 'services', 'community', 'personals', 'gigs', 'resumes', or 'discussion-forums'. Choose the most appropriate single category. Advertisement content: {content}"
+            prompt = f"Categorize this advertisement into the most appropriate single category. Advertisement content: {content}"
             response = model.generate_content(prompt)
             parsed_data = json.loads(response.text)
             return parsed_data['category']
