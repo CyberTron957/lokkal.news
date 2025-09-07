@@ -564,6 +564,138 @@
         margin-right: 0.5rem;
     }
 
+    /* Mobile Classifieds */
+    .mobile-classifieds {
+        display: none;
+    }
+
+    .mobile-classifieds-section {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .mobile-classifieds-section h2 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #1a1a1a;
+        border-bottom: 2px solid #f59e0b;
+        padding-bottom: 0.5rem;
+    }
+
+    .classified-card-link {
+        display: block;
+        text-decoration: none;
+        margin-bottom: 1rem;
+    }
+
+    .classified-card-link:last-child {
+        margin-bottom: 0;
+    }
+
+    .classified-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 1rem;
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .classified-card-link:hover .classified-card {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+        border-color: #f59e0b;
+    }
+
+    .classified-card .content h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        line-height: 1.3;
+        margin-bottom: 0.5rem;
+        color: #92400e;
+    }
+
+    .classified-card-link:hover .classified-card .content h4 {
+        color: #78350f;
+    }
+
+    .classified-card .content .meta {
+        font-size: 0.8rem;
+        color: #a16207;
+        font-weight: 500;
+    }
+
+    /* Mobile Latest News */
+    .mobile-latest-news {
+        display: none;
+    }
+
+    .mobile-latest-section {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .mobile-latest-section h2 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #1a1a1a;
+        border-bottom: 2px solid #2563eb;
+        padding-bottom: 0.5rem;
+    }
+
+    .mobile-latest-section .sidebar-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .mobile-latest-section .sidebar-item:last-child {
+        border-bottom: none;
+    }
+
+    .mobile-latest-section .sidebar-item img {
+        width: 80px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+
+    .mobile-latest-section .sidebar-item .content {
+        flex: 1;
+    }
+
+    .mobile-latest-section .sidebar-item h4 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        line-height: 1.3;
+        margin-bottom: 0.5rem;
+        color: #1a1a1a;
+    }
+
+    .mobile-latest-section .sidebar-item h4 a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .mobile-latest-section .sidebar-item h4 a:hover {
+        color: #2563eb;
+    }
+
+    .mobile-latest-section .sidebar-item .meta {
+        font-size: 0.75rem;
+        color: #888;
+    }
+
     /* Responsive Design */
     @media (max-width: 1024px) {
         .news-container {
@@ -587,6 +719,21 @@
     }
 
     @media (max-width: 768px) {
+        /* Show mobile sections, hide desktop sidebar */
+        .mobile-classifieds {
+            display: block;
+            margin: 1.5rem 0;
+        }
+        
+        .mobile-latest-news {
+            display: block;
+            margin: 1.5rem 0;
+        }
+        
+        .sidebar {
+            display: none;
+        }
+        
         .hero-section {
             grid-template-columns: 1fr;
             grid-template-rows: 250px 120px 120px;
@@ -616,6 +763,52 @@
         .carousel-btn svg {
             width: 14px;
             height: 14px;
+        }
+        
+        /* Adjust mobile sections spacing */
+        .mobile-classifieds-section {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .mobile-classifieds-section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .classified-card-link {
+            margin-bottom: 0.75rem;
+        }
+        
+        .classified-card {
+            padding: 0.75rem;
+        }
+        
+        .classified-card .content h4 {
+            font-size: 0.9rem;
+        }
+        
+        .mobile-latest-section {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .mobile-latest-section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .mobile-latest-section .sidebar-item {
+            padding: 0.75rem 0;
+        }
+        
+        .mobile-latest-section .sidebar-item img {
+            width: 70px;
+            height: 50px;
+        }
+        
+        .mobile-latest-section .sidebar-item h4 {
+            font-size: 0.85rem;
         }
     }
 
@@ -962,6 +1155,57 @@
         </section>
         {% endif %}
         
+        <!-- Mobile Classifieds (shown directly after hero on mobile) -->
+        {% if ad_categories_list %}
+        <div class="mobile-classifieds">
+            <div class="mobile-classifieds-section">
+                <h2>Classifieds</h2>
+                {% for category_data in ad_categories_list|slice:":3" %}
+                    <a href="{% url 'advertisements_by_category' area_name=area.name category=category_data.0 %}" class="classified-card-link">
+                        <div class="classified-card">
+                            <div class="content">
+                                <h4>{{ category_data.0|title }}</h4>
+                                <div class="meta">{{ category_data.1|length }} listing{{ category_data.1|length|pluralize }}</div>
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Mobile Latest News (shown after classifieds on mobile) -->
+        <div class="mobile-latest-news">
+            <div class="mobile-latest-section">
+                <h2>Latest Updates</h2>
+                {% for article in articles|slice:":4" %}
+                    <div class="sidebar-item">
+                        <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                        <div class="content">
+                            <h4>
+                                {% if article.is_external %}
+                                    <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                                        {{ article.title|truncatechars:60 }}
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                                        {{ article.title|truncatechars:60 }}
+                                    </a>
+                                {% endif %}
+                            </h4>
+                            <div class="meta">
+                                {% if article.is_external %}
+                                    {{ article.published_at|date:"M j" }} • Google News
+                                {% else %}
+                                    {{ article.created_at|date:"M j" }} • {{ article.likes|default:0 }} likes
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
         <!-- Main Content Layout -->
         <div class="news-container">
             <!-- Main Content Area -->
