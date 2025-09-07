@@ -1,22 +1,93 @@
 # Database files
 *.sqlite3
+*.db
 
 # Python cache
 __pycache__/
 */__pycache__/
 *.py[cod]
 *.pyc
+*.pyo
+*.pyd
+.Python
+
 # Django migrations
 news_app/migrations/
 
-# VSCode settings
-.vscode/
+# Media files (user uploads)
+media/
+*/media/
+uploads/
 
 # Static files
 news_app/static/
+static/
+staticfiles/
 
 # Environment variables
 .env
+.env.local
+.env.production
+.env.staging
+
+# IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Virtual environments
+venv/
+env/
+ENV/
+myenv/
+.venv/
+
+# Django specific
+local_settings.py
+db.sqlite3-journal
+
+# Node modules (if using frontend tools)
+node_modules/
+npm-debug.log*
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# pytest
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Temporary files
+*.tmp
+*.temp
 
 userinput.py
 .cursor
