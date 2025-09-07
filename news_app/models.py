@@ -66,6 +66,7 @@ class Advertisement(models.Model):
     area = models.ForeignKey('Area', on_delete=models.CASCADE, related_name='advertisements', null=True, blank=True)
     advertiser_name = models.CharField(max_length=100, blank=True, null=True)
     slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
+    image = models.ImageField(upload_to='advertisements/', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:

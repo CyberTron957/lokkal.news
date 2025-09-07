@@ -12,7 +12,9 @@ class PostForm(forms.ModelForm):
 class AdvertisementForm(forms.ModelForm):
     class Meta:
         model = Advertisement
-        fields = ['area']
+        fields = ['area', 'content', 'advertiser_name', 'image']
         widgets = {
             'area': forms.TextInput(attrs={'required': 'required'}),
+            'content': forms.Textarea(attrs={'required': 'required'}),
+            'advertiser_name': forms.TextInput(),
         }

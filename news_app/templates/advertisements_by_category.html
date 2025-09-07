@@ -111,6 +111,24 @@
         gap: 0.25rem;
     }
 
+    .ad-image {
+        margin-bottom: 1rem;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+    }
+
+    .advertisement-image {
+        width: 100%;
+        max-height: 300px;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.2s ease;
+    }
+
+    .advertisement-card:hover .advertisement-image {
+        transform: scale(1.02);
+    }
+
     .ad-content {
         font-size: 1rem;
         line-height: 1.6;
@@ -234,6 +252,10 @@
             gap: 0.5rem;
             align-items: flex-start;
         }
+
+        .advertisement-image {
+            max-height: 200px;
+        }
     }
 </style>
 {% endblock %}
@@ -274,6 +296,12 @@
                                 {{ ad.created_at|date:"M d, Y" }}
                             </div>
                         </div>
+                        
+                        {% if ad.image %}
+                        <div class="ad-image">
+                            <img src="{{ ad.image.url }}" alt="Advertisement image" class="advertisement-image">
+                        </div>
+                        {% endif %}
                         
                         <div class="ad-content">
                             {{ ad.content|linebreaks }}

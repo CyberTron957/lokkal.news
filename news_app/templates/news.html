@@ -394,6 +394,25 @@
         letter-spacing: 0.5px;
     }
 
+    .ad-image-preview {
+        margin-bottom: 1rem;
+        border-radius: 6px;
+        overflow: hidden;
+        max-height: 120px;
+    }
+
+    .ad-preview-img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.2s ease;
+    }
+
+    .ad-card:hover .ad-preview-img {
+        transform: scale(1.05);
+    }
+
     .ad-card h4 {
         font-size: 1.1rem;
         font-weight: 700;
@@ -1253,6 +1272,11 @@
                             {% if forloop.counter == 3 and ad_categories_list.0 %}
                                 <article class="ad-card">
                                     <div class="ad-badge">Sponsored</div>
+                                    {% if ad_categories_list.0.1 and ad_categories_list.0.1.0.image %}
+                                        <div class="ad-image-preview">
+                                            <img src="{{ ad_categories_list.0.1.0.image.url }}" alt="Advertisement" class="ad-preview-img">
+                                        </div>
+                                    {% endif %}
                                     <h4>{{ ad_categories_list.0.0|title }} Classifieds</h4>
                                     {% if ad_categories_list.0.1 %}
                                         <p>{{ ad_categories_list.0.1.0.content|truncatechars:80 }}</p>
@@ -1267,6 +1291,11 @@
                             {% elif forloop.counter == 6 and ad_categories_list.1 %}
                                 <article class="ad-card">
                                     <div class="ad-badge">Sponsored</div>
+                                    {% if ad_categories_list.1.1 and ad_categories_list.1.1.0.image %}
+                                        <div class="ad-image-preview">
+                                            <img src="{{ ad_categories_list.1.1.0.image.url }}" alt="Advertisement" class="ad-preview-img">
+                                        </div>
+                                    {% endif %}
                                     <h4>{{ ad_categories_list.1.0|title }} Classifieds</h4>
                                     {% if ad_categories_list.1.1 %}
                                         <p>{{ ad_categories_list.1.1.0.content|truncatechars:80 }}</p>
@@ -1281,6 +1310,11 @@
                             {% elif forloop.counter == 9 and ad_categories_list.2 %}
                                 <article class="ad-card">
                                     <div class="ad-badge">Sponsored</div>
+                                    {% if ad_categories_list.2.1 and ad_categories_list.2.1.0.image %}
+                                        <div class="ad-image-preview">
+                                            <img src="{{ ad_categories_list.2.1.0.image.url }}" alt="Advertisement" class="ad-preview-img">
+                                        </div>
+                                    {% endif %}
                                     <h4>{{ ad_categories_list.2.0|title }} Classifieds</h4>
                                     {% if ad_categories_list.2.1 %}
                                         <p>{{ ad_categories_list.2.1.0.content|truncatechars:80 }}</p>

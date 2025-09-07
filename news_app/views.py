@@ -531,7 +531,7 @@ def advertisement_create(request):
         area_name = normalize_area_name(request.POST.get('area', ''))
         content = request.POST.get('content', '').strip()
         advertiser_name = request.POST.get('advertiser_name', '').strip()
-        form = AdvertisementForm(request.POST)
+        form = AdvertisementForm(request.POST, request.FILES)
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             errors = {}
@@ -551,7 +551,8 @@ def advertisement_create(request):
                     content=content, 
                     area=area, 
                     advertiser_name=advertiser_name,
-                    category=category
+                    category=category,
+                    image=request.FILES.get('image')
                 )
                 time.sleep(1)
                 return JsonResponse({'success': True})
@@ -561,8 +562,6 @@ def advertisement_create(request):
         # Non-AJAX request handling
         if form.is_valid():
             advertisement = form.save(commit=False)
-            advertisement.content = content
-            advertisement.advertiser_name = advertiser_name
             area, _ = Area.objects.get_or_create(name=area_name)
             advertisement.area = area
             # Categorize the advertisement
@@ -570,7 +569,6 @@ def advertisement_create(request):
             advertisement.save()
             return redirect(f'/{area_name}/')
         else:
-            form = AdvertisementForm(initial={'area': request.POST.get('area', ''), 'content': content})
             return render(request, 'advertisement_form.html', {'form': form})
 
     else:  # GET request
