@@ -256,6 +256,12 @@
 </head>
 
 <body class="min-h-screen">
+    <div id="location-denied-banner" class="hidden bg-yellow-400 text-black p-3 text-center shadow-md">
+        <span class="font-medium">Allow location access to see what's happening around you.</span>
+        <button id="request-location-access" class="ml-4 bg-blue-600 text-white font-bold py-1 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+            Allow
+        </button>
+    </div>
     <!-- Header Navigation -->
     <nav class="header-nav sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -690,6 +696,7 @@
             function fetchNearbyAreas() {
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(function(position) {
+                        $('#location-denied-banner').hide();
                         const lat = position.coords.latitude;
                         const lon = position.coords.longitude;
                         
@@ -718,6 +725,11 @@
                                 }
                             }
                         });
+                    }, function(error) {
+                        if (error.code == error.PERMISSION_DENIED) {
+                            $('#location-denied-banner').show();
+                            $('#location-modal').hide();
+                        }
                     });
                 }
             }
@@ -728,6 +740,17 @@
                         fetchNearbyAreas();
                     } else if (result.state === 'prompt') {
                         $('#location-modal').show();
+                    } else if (result.state === 'denied') {
+                        $('#location-denied-banner').show();
+                    }
+                    result.onchange = function() {
+                        if (result.state === 'denied') {
+                            $('#location-denied-banner').show();
+                            $('#location-modal').hide();
+                        } else if (result.state === 'granted') {
+                            $('#location-denied-banner').hide();
+                            fetchNearbyAreas();
+                        }
                     }
                 });
             } else if (navigator.geolocation) {
@@ -742,6 +765,11 @@
 
             $('#deny-location').on('click', function() {
                 $('#location-modal').hide();
+                $('#location-denied-banner').show();
+            });
+
+            $('#request-location-access').on('click', function() {
+                fetchNearbyAreas();
             });
 
             $('#close-nearby-modal').on('click', function() {
