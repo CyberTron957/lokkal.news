@@ -84,6 +84,8 @@ class Advertisement(models.Model):
 class Area(models.Model):
     name = models.CharField(max_length=255, unique=True)
     last_generated_at = models.DateTimeField(null=True, blank=True, editable=False)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         self.name = self.name.lower()

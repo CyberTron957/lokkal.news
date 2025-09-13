@@ -334,6 +334,14 @@
                 {% endfor %}
                 {% endif %}
             </div>
+
+            <!-- Recently Visited -->
+            <div id="recently-visited-container" class="flex flex-wrap gap-3 justify-center mb-8">
+            </div>
+
+            <!-- Nearby Areas -->
+            <div id="nearby-areas-container" class="flex flex-wrap gap-3 justify-center mb-8">
+            </div>
         </div>
     </section>
 
@@ -606,6 +614,37 @@
 
     <script>
         $(document).ready(function () {
+            // Manage and display recently visited communities
+            let recentlyVisited = JSON.parse(localStorage.getItem('recentlyVisited')) || [];
+            const serverVisited = {{ recently_visited|safe }};
+
+            // Update localStorage with data from the server (session)
+            if (serverVisited.length > 0) {
+                serverVisited.forEach(function(areaName) {
+                    // Avoid duplicates
+                    const index = recentlyVisited.indexOf(areaName);
+                    if (index > -1) {
+                        recentlyVisited.splice(index, 1);
+                    }
+                    recentlyVisited.unshift(areaName);
+                });
+                localStorage.setItem('recentlyVisited', JSON.stringify(recentlyVisited.slice(0, 5)));
+            }
+
+            // Display the list
+            if (recentlyVisited.length > 0) {
+                let html = '<h3 class="text-2xl font-bold text-gray-800 w-full text-center mb-4">Recently Visited</h3>';
+                recentlyVisited.forEach(function(areaName) {
+                    html += `
+                        <a href="/${areaName}/" class="popular-area-chip">
+                            <i class="fas fa-history text-purple-500 mr-2"></i>
+                            <span>${areaName}</span>
+                        </a>
+                    `;
+                });
+                $('#recently-visited-container').html(html);
+            }
+
             // Enhanced search functionality
             $('#area').on('keyup', function () {
                 var query = $(this).val();
@@ -646,6 +685,67 @@
                 if (!$(e.target).closest('#area, #suggestions').length) {
                     $('#suggestions').hide();
                 }
+            });
+
+            function fetchNearbyAreas() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        
+                        $.ajax({
+                            url: '/api/nearby-areas/',
+                            data: {
+                                'lat': lat,
+                                'lon': lon
+                            },
+                            success: function(data) {
+                                if (data.areas.length > 0) {
+                                    let html = '';
+                                    data.areas.forEach(function(area) {
+                                        html += `
+                                            <a href="/${area.name}/" class="flex items-center p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                                <i class="fas fa-map-marker-alt text-blue-500 mr-4"></i>
+                                                <div>
+                                                    <div class="font-semibold">${area.name}</div>
+                                                    <div class="text-sm text-gray-500">${area.distance.toFixed(1)} km away</div>
+                                                </div>
+                                            </a>
+                                        `;
+                                    });
+                                    $('#nearby-areas-list').html(html);
+                                    $('#nearby-areas-modal').show();
+                                }
+                            }
+                        });
+                    });
+                }
+            }
+
+            if (navigator.permissions) {
+                navigator.permissions.query({name: 'geolocation'}).then(function(result) {
+                    if (result.state === 'granted') {
+                        fetchNearbyAreas();
+                    } else if (result.state === 'prompt') {
+                        $('#location-modal').show();
+                    }
+                });
+            } else if (navigator.geolocation) {
+                // Fallback for browsers that don't support Permissions API
+                $('#location-modal').show();
+            }
+
+            $('#allow-location').on('click', function() {
+                $('#location-modal').hide();
+                fetchNearbyAreas();
+            });
+
+            $('#deny-location').on('click', function() {
+                $('#location-modal').hide();
+            });
+
+            $('#close-nearby-modal').on('click', function() {
+                $('#nearby-areas-modal').hide();
             });
 
             // Smooth scrolling for anchor links
@@ -719,26 +819,26 @@
                 }
             }
 
-            // Add animation to stats cards
-            function .each(function () {
-                var $this = $(this);
-                var $number = $this.find('.text-2xl');
-                var finalNumber = $number.text().replace(/\D/g, '');
+            function animateStats() {
+                $('.stats-card').each(function () {
+                    var $this = $(this);
+                    var $number = $this.find('.text-2xl');
+                    var finalNumber = $number.text().replace(/\D/g, '');
 
-                if (finalNumber) {
-                    var current = 0;
-                    var increment = Math.ceil(finalNumber / 50);
-                    var timer = setInterval(function () {
-                        current += increment;
-                        if (current >= finalNumber) {
-                            current = finalNumber;
-                            clearInterval(timer);
-                        }
-                        $number.text(current + ($number.text().includes('+') ? '+' : ''));
-                    }, 30);
-                }
-            });
-        }
+                    if (finalNumber) {
+                        var current = 0;
+                        var increment = Math.ceil(finalNumber / 50);
+                        var timer = setInterval(function () {
+                            current += increment;
+                            if (current >= finalNumber) {
+                                current = finalNumber;
+                                clearInterval(timer);
+                            }
+                            $number.text(current + ($number.text().includes('+') ? '+' : ''));
+                        }, 30);
+                    }
+                });
+            }
 
             // Trigger stats animation when in viewport
             $(window).scroll(function () {
@@ -772,25 +872,35 @@
         // Add CSS transitions for image hover effects
         $('<style>')
             .prop('type', 'text/css')
-            .html(`
-                .news-card img, .featured-card img {
-                    transition: transform 0.3s ease;
-                }
-                .line-clamp-2 {
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                }
-                .line-clamp-3 {
-                    display: -webkit-box;
-                    -webkit-line-clamp: 3;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                }
-            `)
+            .html(
+                "\
+                .news-card img, .featured-card img {\n                    transition: transform 0.3s ease;\n                }\n                .line-clamp-2 {\n                    display: -webkit-box;\n                    -webkit-line-clamp: 2;\n                    -webkit-box-orient: vertical;\n                    overflow: hidden;\n                }\n                .line-clamp-3 {\n                    display: -webkit-box;\n                    -webkit-line-clamp: 3;\n                    -webkit-box-orient: vertical;\n                    overflow: hidden;\n                }\n            "
+            )
             .appendTo('head');
     </script>
+<div id="location-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg p-8 max-w-sm mx-auto">
+        <h3 class="text-2xl font-bold mb-4">Discover Communities Near You</h3>
+        <p class="text-gray-600 mb-6">To help you find local news and communities, we can use your current location. Your location data will not be stored.</p>
+        <div class="flex justify-end space-x-4">
+            <button id="deny-location" class="px-4 py-2 rounded-lg text-gray-600 bg-gray-200 hover:bg-gray-300">Deny</button>
+            <button id="allow-location" class="px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700">Allow</button>
+        </div>
+    </div>
+</div>
+<div id="nearby-areas-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg p-8 max-w-sm mx-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-2xl font-bold">Nearby Communities</h3>
+            <button id="close-nearby-modal" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div id="nearby-areas-list" class="space-y-4">
+            <!-- Nearby areas will be injected here by JavaScript -->
+        </div>
+    </div>
+</div>
 </body>
 
 </html>

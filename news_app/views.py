@@ -37,6 +37,31 @@ STOP_WORDS = set([
     "they", "this", "to", "was", "will", "with", "over", "post-oc" # Added 'over' and 'post-oc' based on example
 ])
 
+def geocode_area(area_name):
+    """
+    Geocodes an area name using the Nominatim API.
+    """
+    if not area_name:
+        return None, None
+
+    logger.info(f"Geocoding area: {area_name}")
+    url = f"https://nominatim.openstreetmap.org/search?q={urllib.parse.quote(area_name)}&format=json&limit=1"
+    try:
+        response = requests.get(url, headers={'User-Agent': 'Gemini-CLI-Agent/1.0'})
+        response.raise_for_status()
+        data = response.json()
+        if data:
+            lat = float(data[0]['lat'])
+            lon = float(data[0]['lon'])
+            logger.info(f"Successfully geocoded {area_name}: ({lat}, {lon})")
+            return lat, lon
+        else:
+            logger.warning(f"Could not find coordinates for {area_name}")
+            return None, None
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error geocoding {area_name}: {e}")
+        return None, None
+
 def normalize_area_name(name: str | None) -> str:
     """Converts to lowercase, strips whitespace, and collapses internal spaces."""
     if not name:
@@ -226,7 +251,6 @@ def fetch_cover_image(query, category=None):
     cache.set(cache_key, None, timeout=3600)
     return None # Return None if anything goes wrong or no image is found
 
-
 def init_view(request):
     if request.method == 'POST':
         original_input = request.POST.get('area', '')
@@ -242,6 +266,11 @@ def init_view(request):
 
         if skip_correction:
             area, created = Area.objects.get_or_create(name=area_name)
+            if created:
+                lat, lon = geocode_area(area_name)
+                area.latitude = lat
+                area.longitude = lon
+                area.save()
             logger.info(f"Skip correction. Area: '{area.name}', Created: {created}")
             # Clear any correction session variables if user explicitly searched
             request.session.pop('auto_corrected', None)
@@ -279,12 +308,22 @@ def init_view(request):
                     # Create the originally searched (potentially typo) area if it doesn't exist
                     # This ensures the user lands on the page they typed, with a suggestion.
                     area, created = Area.objects.get_or_create(name=area_name) 
+                    if created:
+                        lat, lon = geocode_area(area_name)
+                        area.latitude = lat
+                        area.longitude = lon
+                        area.save()
                     logger.info(f"Low confidence. User searched for '{area_name}' (created: {created}), suggesting '{similar_area_obj.name}'.")
                     return redirect(f'/{area_name}/')
             else:
                 # No exact match, no similar area found. Create the new area.
-                area = Area.objects.create(name=area_name)
-                logger.info(f"No match, no suggestion. Creating new area: '{area.name}'")
+                lat, lon = geocode_area(area_name)
+                area = Area.objects.create(
+                    name=area_name,
+                    latitude=lat,
+                    longitude=lon,
+                )
+                logger.info(f"No match, no suggestion. Creating new area: '{area.name}' with coordinates: ({lat}, {lon})")
                 # Clear any correction session variables
                 request.session.pop('auto_corrected', None)
                 request.session.pop('suggestion_only', None)
@@ -357,13 +396,16 @@ def init_view(request):
         visits = getattr(article, 'total_visits', 0) or 0
         logger.info(f"  {i}. '{article.title[:50]}...' - {visits} visits")
     
+    recently_visited = request.session.get('recently_visited', [])
+
     context = {
         'trending_pages': trending_pages_data,
-        'trending_articles': trending_articles
+        'trending_articles': trending_articles,
+        'recently_visited': recently_visited,
     }
     return render(request, 'init.html', context)
 
-genai.configure(api_key='AIzaSyDf2x-ENW14KrJEJZSIgY4LLnTv6ns52bQ')  # type: ignore
+genai.configure(api_key="AIzaSyAw23UnQp7oeB1Vb59lemBDrijKJ7u5Wjs")  # type: ignore
 
 def autocomplete_area(request):
     if 'term' in request.GET:
@@ -454,7 +496,12 @@ def post_create(request):
 
             # Since we normalized area_name, don't rely on form validation for it here
             # Just proceed with creating/getting the area
-            area, _ = Area.objects.get_or_create(name=area_name)
+            area, created = Area.objects.get_or_create(name=area_name)
+            if created:
+                lat, lon = geocode_area(area_name)
+                area.latitude = lat
+                area.longitude = lon
+                area.save()
             # Manually create post if content is valid
             if content:
                 # Assign the Area object directly to the ForeignKey
@@ -473,7 +520,12 @@ def post_create(request):
             post.content = content # Already got content above
             post.reporter_name = reporter_name
             # Get the Area object
-            area, _ = Area.objects.get_or_create(name=area_name)
+            area, created = Area.objects.get_or_create(name=area_name)
+            if created:
+                lat, lon = geocode_area(area_name)
+                area.latitude = lat
+                area.longitude = lon
+                area.save()
             # Assign the Area object directly to the ForeignKey
             post.area = area
             post.save() # Save the post with the associated area
@@ -629,7 +681,6 @@ def like_article(request, article_id):
     except Exception as e:
         logger.exception(f"Error liking article {article_id}: {e}")
         return JsonResponse({'success': False, 'error': str(e)})
-
 
 def get_posts_content_by_area(area_name: str, since=None):
     """
@@ -857,6 +908,17 @@ def articles_by_area(request, area_name):
     # Normalize area name from URL
     normalized_area_name = normalize_area_name(area_name)
     area = get_object_or_404(Area, name=normalized_area_name)
+
+    # Add the visited area to the session
+    if 'recently_visited' not in request.session:
+        request.session['recently_visited'] = []
+
+    # Add the area to the list, avoiding duplicates, and keeping it to a certain size
+    if normalized_area_name not in request.session['recently_visited']:
+        request.session['recently_visited'].insert(0, normalized_area_name)
+        # Keep the list to a max of 5 items
+        request.session['recently_visited'] = request.session['recently_visited'][:5]
+        request.session.modified = True
     
     # Get articles for this area using the reverse relationship
     articles = list(area.articles.all().order_by('-created_at')) # type: ignore
@@ -944,6 +1006,8 @@ def trending_articles(request):
 # AJAX Like Endpoint
 # --------------------
 
+from math import radians, sin, cos, sqrt, atan2
+
 @require_POST
 def like_article(request, article_id):
     """Increment the like count for an article (AJAX)."""
@@ -953,3 +1017,43 @@ def like_article(request, article_id):
     # Refresh from the database to get the updated value
     article.refresh_from_db(fields=['likes'])
     return JsonResponse({'success': True, 'likes': article.likes})
+
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371  # Radius of Earth in kilometers
+
+    dLat = radians(lat2 - lat1)
+    dLon = radians(lon2 - lon1)
+    lat1 = radians(lat1)
+    lat2 = radians(lat2)
+
+    a = sin(dLat / 2)**2 + cos(lat1) * cos(lat2) * sin(dLon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    distance = R * c
+    return distance
+
+def nearby_areas(request):
+    lat_str = request.GET.get('lat')
+    lon_str = request.GET.get('lon')
+
+    if not lat_str or not lon_str:
+        return JsonResponse({'error': 'Latitude and longitude are required.'}, status=400)
+
+    try:
+        lat = float(lat_str)
+        lon = float(lon_str)
+    except (ValueError, TypeError):
+        return JsonResponse({'error': 'Invalid latitude or longitude.'}, status=400)
+
+
+    areas = Area.objects.filter(latitude__isnull=False, longitude__isnull=False)
+    nearby = []
+    for area in areas:
+        if area.latitude is not None and area.longitude is not None:
+            distance = haversine(lat, lon, area.latitude, area.longitude)
+            if distance < 50: # Only show areas within 50km
+                nearby.append({'name': area.name, 'distance': distance})
+
+    nearby.sort(key=lambda x: x['distance'])
+
+    return JsonResponse({'areas': nearby[:5]}) # Return the 5 closest areas
