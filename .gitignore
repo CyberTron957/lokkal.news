@@ -16,10 +16,6 @@ media/
 */media/
 uploads/
 
-# Static files
-news_app/static/
-static/
-staticfiles/
 
 # Environment variables
 .env

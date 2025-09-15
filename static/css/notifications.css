@@ -1,0 +1,224 @@
+/* Notification Popup Styles */
+.notification-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.notification-popup.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.notification-popup-content {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+    margin: 20px;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.notification-popup.show .notification-popup-content {
+    transform: translateY(0);
+}
+
+.notification-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 20px 0 20px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+}
+
+.notification-popup-header h3 {
+    margin: 0;
+    color: #1a1a1a;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.notification-popup-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.notification-popup-close:hover {
+    background: #f5f5f5;
+    color: #333;
+}
+
+.notification-popup-body {
+    padding: 0 20px 20px 20px;
+}
+
+.notification-popup-body p {
+    margin: 0 0 20px 0;
+    color: #666;
+    line-height: 1.5;
+}
+
+.notification-popup-buttons {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+}
+
+.notification-popup-buttons button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.btn-secondary:hover {
+    background: #e5e5e5;
+    color: #333;
+}
+
+/* Toast Notifications */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    color: white;
+    font-weight: 500;
+    z-index: 10001;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    max-width: 300px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.toast.show {
+    transform: translateX(0);
+}
+
+.toast-success {
+    background: #10b981;
+}
+
+.toast-error {
+    background: #ef4444;
+}
+
+.toast-info {
+    background: #3b82f6;
+}
+
+/* Notification Settings Button */
+.notification-settings {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    color: #495057;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.notification-settings:hover {
+    background: #e9ecef;
+    color: #212529;
+    text-decoration: none;
+}
+
+.notification-settings.subscribed {
+    background: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+}
+
+.notification-settings.subscribed:hover {
+    background: #bee5eb;
+}
+
+.notification-icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+    .notification-popup-content {
+        margin: 10px;
+    }
+    
+    .notification-popup-header {
+        padding: 15px 15px 0 15px;
+        margin-bottom: 15px;
+    }
+    
+    .notification-popup-body {
+        padding: 0 15px 15px 15px;
+    }
+    
+    .notification-popup-buttons {
+        gap: 8px;
+    }
+    
+    .notification-popup-buttons button {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    .toast {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        transform: translateY(-100%);
+    }
+    
+    .toast.show {
+        transform: translateY(0);
+    }
+}
