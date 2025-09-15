@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Push Notifications Test</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="testArea" class="form-label">Area Name:</label>
+                        <input type="text" class="form-control" id="testArea" value="test-area" placeholder="Enter area name">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <button id="subscribeBtn" class="btn btn-primary me-2">Subscribe to Notifications</button>
+                        <button id="unsubscribeBtn" class="btn btn-secondary me-2">Unsubscribe</button>
+                        <button id="testNotificationBtn" class="btn btn-success">Send Test Notification</button>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h5>Status:</h5>
+                        <div id="status" class="alert alert-info">
+                            Ready to test notifications
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h5>Instructions:</h5>
+                        <ol>
+                            <li>Click "Subscribe to Notifications" to enable notifications for the test area</li>
+                            <li>Grant permission when your browser asks</li>
+                            <li>Click "Send Test Notification" to trigger a test notification</li>
+                            <li>You should receive a push notification</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h5>Browser Support:</h5>
+                        <div id="browserSupport"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusDiv = document.getElementById('status');
+    const browserSupportDiv = document.getElementById('browserSupport');
+    const areaInput = document.getElementById('testArea');
+    
+    function updateStatus(message, type = 'info') {
+        statusDiv.className = `alert alert-${type}`;
+        statusDiv.textContent = message;
+    }
+    
+    // Check browser support
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+        browserSupportDiv.innerHTML = '<span class="text-success">✅ Your browser supports push notifications</span>';
+    } else {
+        browserSupportDiv.innerHTML = '<span class="text-danger">❌ Your browser does not support push notifications</span>';
+    }
+    
+    // Wait a bit for notification manager to load, then check if it's available
+    setTimeout(() => {
+        if (window.notificationManager) {
+            updateStatus('Notification system ready! You can now test notifications.', 'success');
+        } else {
+            updateStatus('Warning: Notification manager not loaded. Please refresh the page.', 'warning');
+        }
+    }, 1000);
+    
+    // Subscribe button
+    document.getElementById('subscribeBtn').addEventListener('click', async function() {
+        const areaName = areaInput.value.trim();
+        if (!areaName) {
+            updateStatus('Please enter an area name', 'warning');
+            return;
+        }
+        
+        // Check if notification manager is available
+        if (!window.notificationManager) {
+            updateStatus('Notification manager not loaded. Please refresh the page.', 'danger');
+            return;
+        }
+        
+        try {
+            updateStatus('Requesting notification permission...', 'info');
+            const hasPermission = await window.notificationManager.requestPermission();
+            
+            if (hasPermission) {
+                updateStatus('Subscribing to notifications...', 'info');
+                const success = await window.notificationManager.subscribe(areaName);
+                
+                if (success) {
+                    updateStatus(`Successfully subscribed to notifications for "${areaName}"`, 'success');
+                } else {
+                    updateStatus('Failed to subscribe to notifications', 'danger');
+                }
+            } else {
+                updateStatus('Notification permission denied', 'danger');
+            }
+        } catch (error) {
+            updateStatus(`Error: ${error.message}`, 'danger');
+        }
+    });
+    
+    // Unsubscribe button
+    document.getElementById('unsubscribeBtn').addEventListener('click', async function() {
+        const areaName = areaInput.value.trim();
+        if (!areaName) {
+            updateStatus('Please enter an area name', 'warning');
+            return;
+        }
+        
+        // Check if notification manager is available
+        if (!window.notificationManager) {
+            updateStatus('Notification manager not loaded. Please refresh the page.', 'danger');
+            return;
+        }
+        
+        try {
+            updateStatus('Unsubscribing from notifications...', 'info');
+            const success = await window.notificationManager.unsubscribe(areaName);
+            
+            if (success) {
+                updateStatus(`Successfully unsubscribed from notifications for "${areaName}"`, 'success');
+            } else {
+                updateStatus('Failed to unsubscribe from notifications', 'danger');
+            }
+        } catch (error) {
+            updateStatus(`Error: ${error.message}`, 'danger');
+        }
+    });
+    
+    // Test notification button
+    document.getElementById('testNotificationBtn').addEventListener('click', async function() {
+        const areaName = areaInput.value.trim();
+        if (!areaName) {
+            updateStatus('Please enter an area name', 'warning');
+            return;
+        }
+        
+        try {
+            updateStatus('Sending test notification...', 'info');
+            
+            const response = await fetch(`/api/test-notification/?area=${encodeURIComponent(areaName)}`);
+            const result = await response.json();
+            
+            if (result.success) {
+                updateStatus(`Test notification sent! Check for a push notification.`, 'success');
+            } else {
+                updateStatus(`Failed to send test notification: ${result.error}`, 'danger');
+            }
+        } catch (error) {
+            updateStatus(`Error: ${error.message}`, 'danger');
+        }
+    });
+});
+</script>
+{% endblock %}

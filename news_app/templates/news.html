@@ -872,6 +872,8 @@
        
 </style>
 {% endblock %}
+
+
 {% block content %}
 <div class="container">
     {% if auto_corrected and original_query and corrected_query %}
@@ -1404,6 +1406,17 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    // Show notification popup for this area
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.notificationManager && '{{ area.name }}') {
+            // Show popup after a short delay to let the page load
+            setTimeout(() => {
+                window.notificationManager.showNotificationPopup('{{ area.name }}');
+            }, 1500);
+        }
+    });
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize all carousels

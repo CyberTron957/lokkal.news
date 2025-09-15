@@ -19,10 +19,16 @@ class Article(models.Model):
     reporter_name = models.CharField(max_length=100, blank=True, null=True, help_text="Displayed under the article title. Can be a name or a generic credit like 'Community Reports'.")
 
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
         if not self.slug:       
             unique_hash = hashlib.sha256(self.title.encode()).hexdigest()  # Generate a unique hash
             self.slug = f"{slugify(self.title)}-{unique_hash}"  # Append the hash to the slug
         super().save(*args, **kwargs)
+        
+        # Send push notifications for new articles
+        if is_new and self.area:
+            from .views import send_push_notifications
+            send_push_notifications(self.area, self)
 
     def __str__(self):
         return self.title
@@ -93,3 +99,18 @@ class Area(models.Model):
 
     def __str__(self):
         return self.name
+
+class NotificationSubscription(models.Model):
+    area = models.ForeignKey(Area, on_delete=models.CASCADE, related_name='subscriptions')
+    endpoint = models.URLField(max_length=500)
+    p256dh_key = models.CharField(max_length=255)
+    auth_key = models.CharField(max_length=255)
+    user_agent = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ['area', 'endpoint']
+
+    def __str__(self):
+        return f"Subscription for {self.area.name}"

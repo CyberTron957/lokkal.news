@@ -4,7 +4,7 @@ from .forms import PostForm, AdvertisementForm
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.files.storage import default_storage
-from .models import Article, Post, questions, URLModel, Area, Advertisement
+from .models import Article, Post, questions, URLModel, Area, Advertisement, NotificationSubscription
 from django.conf import settings
 import google.generativeai as genai
 import requests
@@ -25,6 +25,8 @@ import urllib.parse # Ensure this is imported
 from django.core.cache import cache # Import Django's cache
 import logging
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -1057,3 +1059,213 @@ def nearby_areas(request):
     nearby.sort(key=lambda x: x['distance'])
 
     return JsonResponse({'areas': nearby[:5]}) # Return the 5 closest areas
+
+@csrf_exempt
+@require_POST
+def subscribe_notifications(request):
+    """
+    API endpoint to subscribe to push notifications for an area
+    """
+    try:
+        data = json.loads(request.body)
+        area_name = normalize_area_name(data.get('area_name', ''))
+        subscription_data = data.get('subscription', {})
+        
+        if not area_name or not subscription_data:
+            return JsonResponse({'success': False, 'error': 'Missing required data'})
+        
+        area = get_object_or_404(Area, name=area_name)
+        
+        # Extract subscription details
+        endpoint = subscription_data.get('endpoint')
+        keys = subscription_data.get('keys', {})
+        p256dh = keys.get('p256dh')
+        auth = keys.get('auth')
+        
+        if not all([endpoint, p256dh, auth]):
+            return JsonResponse({'success': False, 'error': 'Invalid subscription data'})
+        
+        # Create or update subscription
+        subscription, created = NotificationSubscription.objects.update_or_create(
+            area=area,
+            endpoint=endpoint,
+            defaults={
+                'p256dh_key': p256dh,
+                'auth_key': auth,
+                'user_agent': request.META.get('HTTP_USER_AGENT', ''),
+                'is_active': True
+            }
+        )
+        
+        logger.info(f"Notification subscription {'created' if created else 'updated'} for area: {area_name}")
+        return JsonResponse({'success': True, 'message': 'Subscription successful'})
+        
+    except Exception as e:
+        logger.exception(f"Error subscribing to notifications: {e}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@csrf_exempt
+@require_POST
+def unsubscribe_notifications(request):
+    """
+    API endpoint to unsubscribe from push notifications for an area
+    """
+    try:
+        data = json.loads(request.body)
+        area_name = normalize_area_name(data.get('area_name', ''))
+        endpoint = data.get('endpoint', '')
+        
+        if not area_name or not endpoint:
+            return JsonResponse({'success': False, 'error': 'Missing required data'})
+        
+        area = get_object_or_404(Area, name=area_name)
+        
+        # Deactivate subscription
+        updated = NotificationSubscription.objects.filter(
+            area=area,
+            endpoint=endpoint
+        ).update(is_active=False)
+        
+        if updated:
+            logger.info(f"Notification subscription deactivated for area: {area_name}")
+            return JsonResponse({'success': True, 'message': 'Unsubscribed successfully'})
+        else:
+            return JsonResponse({'success': False, 'error': 'Subscription not found'})
+        
+    except Exception as e:
+        logger.exception(f"Error unsubscribing from notifications: {e}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
+def send_push_notifications(area, article):
+    """
+    Send push notifications to all subscribers of an area when a new article is posted
+    """
+    try:
+        # Import here to avoid circular imports and handle missing dependency gracefully
+        try:
+            from pywebpush import webpush, WebPushException
+        except ImportError:
+            logger.warning("pywebpush not installed. Push notifications disabled.")
+            return
+        
+        subscriptions = NotificationSubscription.objects.filter(
+            area=area,
+            is_active=True
+        )
+        
+        logger.info(f"Found {subscriptions.count()} active subscriptions for area: {area.name}")
+        
+        if not subscriptions.exists():
+            logger.info(f"No active subscriptions for area: {area.name}")
+            return
+        
+        # Prepare notification payload
+        notification_data = {
+            "title": f"New article in {area.name.title()}",
+            "body": article.title,
+            "icon": "/static/icon-192x192.png",  # You'll need to add this icon
+            "badge": "/static/badge-72x72.png",  # You'll need to add this badge
+            "data": {
+                "url": f"/{area.name}/{article.slug}/",
+                "area": area.name,
+                "article_id": article.id
+            },
+            "actions": [
+                {
+                    "action": "view",
+                    "title": "Read Article"
+                }
+            ]
+        }
+        
+        payload = json.dumps(notification_data)
+        
+        # VAPID keys - you'll need to generate these
+        vapid_private_key = os.environ.get('VAPID_PRIVATE_KEY')
+        vapid_public_key = os.environ.get('VAPID_PUBLIC_KEY')
+        vapid_email = os.environ.get('VAPID_EMAIL', 'your-email@example.com')
+        vapid_claims = {"sub": f"mailto:{vapid_email}"}
+        
+        logger.info(f"VAPID keys loaded: private={'***' if vapid_private_key else 'None'}, public={'***' if vapid_public_key else 'None'}, email={vapid_email}")
+        
+        if not vapid_private_key or not vapid_public_key:
+            logger.warning("VAPID keys not configured. Push notifications disabled.")
+            return
+        
+        successful_sends = 0
+        failed_sends = 0
+        
+        for subscription in subscriptions:
+            try:
+                subscription_info = {
+                    "endpoint": subscription.endpoint,
+                    "keys": {
+                        "p256dh": subscription.p256dh_key,
+                        "auth": subscription.auth_key
+                    }
+                }
+                
+                webpush(
+                    subscription_info=subscription_info,
+                    data=payload,
+                    vapid_private_key=vapid_private_key,
+                    vapid_claims=vapid_claims
+                )
+                successful_sends += 1
+                
+            except WebPushException as e:
+                logger.error(f"Failed to send push notification: {e}")
+                if e.response and e.response.status_code in [410, 413, 429]:
+                    # Subscription is no longer valid
+                    subscription.is_active = False
+                    subscription.save()
+                failed_sends += 1
+            except Exception as e:
+                logger.exception(f"Unexpected error sending push notification: {e}")
+                failed_sends += 1
+        
+        logger.info(f"Push notifications sent for {area.name}: {successful_sends} successful, {failed_sends} failed")
+        
+    except Exception as e:
+        logger.exception(f"Error in send_push_notifications: {e}")
+
+@csrf_exempt
+def test_notification(request):
+    """
+    Test endpoint to manually send a notification (for development/testing)
+    """
+    if not settings.DEBUG:
+        return JsonResponse({'error': 'Only available in debug mode'}, status=403)
+    
+    try:
+        area_name = request.GET.get('area', 'test')
+        area, _ = Area.objects.get_or_create(name=area_name.lower())
+        
+        # Create a test article with unique title
+        import time
+        timestamp = int(time.time())
+        article = Article.objects.create(
+            title=f"Test notification for {area.name} - {timestamp}",
+            content="This is a test notification to verify the push notification system is working.",
+            category="test",
+            area=area
+        )
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'Test notification sent for area: {area.name}',
+            'article_id': article.id
+        })
+        
+    except Exception as e:
+        logger.exception(f"Error sending test notification: {e}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
+def test_notifications_page(request):
+    """
+    Test page for push notifications (only available in debug mode)
+    """
+    if not settings.DEBUG:
+        return redirect('enter_area')
+    
+    return render(request, 'test_notifications.html')

@@ -11,9 +11,6 @@ __pycache__/
 *.pyd
 .Python
 
-# Django migrations
-news_app/migrations/
-
 # Media files (user uploads)
 media/
 */media/
