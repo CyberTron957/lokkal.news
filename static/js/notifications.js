@@ -138,7 +138,9 @@ class NotificationManager {
         // Check if user has already been asked or is subscribed
         const hasBeenAsked = localStorage.getItem(`notification_asked_${areaName}`);
         const isSubscribed = this.getSubscriptionStatus(areaName);
+        const bannerDismissed = localStorage.getItem(`notification_banner_dismissed_${areaName}`);
 
+        // Don't show popup if user has been asked (they'll see the banner instead) or if subscribed
         if (hasBeenAsked || isSubscribed || !this.isSupported) {
             return;
         }
@@ -169,9 +171,19 @@ class NotificationManager {
         const denyBtn = popup.querySelector('#deny-notifications');
         const closeBtn = popup.querySelector('.notification-popup-close');
 
-        const closePopup = () => {
+        const closePopup = (userDenied = false) => {
             popup.remove();
             localStorage.setItem(`notification_asked_${areaName}`, 'true');
+            
+            // If user explicitly denied, show banner after a short delay
+            if (userDenied) {
+                setTimeout(() => {
+                    const banner = document.getElementById('notificationBanner');
+                    if (banner) {
+                        banner.classList.add('show');
+                    }
+                }, 500);
+            }
         };
 
         allowBtn.addEventListener('click', async () => {
@@ -189,8 +201,8 @@ class NotificationManager {
             closePopup();
         });
 
-        denyBtn.addEventListener('click', closePopup);
-        closeBtn.addEventListener('click', closePopup);
+        denyBtn.addEventListener('click', () => closePopup(true));
+        closeBtn.addEventListener('click', () => closePopup(true));
 
         // Auto-show popup after a short delay
         setTimeout(() => {

@@ -63,7 +63,7 @@
         bottom: 0;
         left: 0;
         right: 0;
-        background: linear-gradient(transparent, rgba(0,0,0,0.85));
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
         color: white;
         padding: 2rem;
     }
@@ -73,7 +73,7 @@
         font-weight: 700;
         line-height: 1.3;
         margin-bottom: 0.5rem;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
 
     .carousel-slide h1 a {
@@ -119,7 +119,7 @@
         bottom: 0;
         left: 0;
         right: 0;
-        background: linear-gradient(transparent, rgba(0,0,0,0.8));
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
         color: white;
         padding: 1rem;
     }
@@ -138,7 +138,7 @@
     }
 
     .carousel-btn {
-        background: rgba(0,0,0,0.3);
+        background: rgba(0, 0, 0, 0.3);
         border: none;
         width: 40px;
         height: 40px;
@@ -154,7 +154,7 @@
     }
 
     .carousel-btn:hover {
-        background: rgba(0,0,0,0.5);
+        background: rgba(0, 0, 0, 0.5);
         opacity: 1;
         transform: scale(1.1);
     }
@@ -180,7 +180,7 @@
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: rgba(255,255,255,0.5);
+        background: rgba(255, 255, 255, 0.5);
         border: none;
         cursor: pointer;
         transition: all 0.3s ease;
@@ -214,13 +214,13 @@
         background: white;
         border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         transition: transform 0.2s, box-shadow 0.2s;
     }
 
     .news-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     }
 
     .news-card img {
@@ -274,7 +274,7 @@
         background: white;
         border-radius: 8px;
         padding: 1.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         height: fit-content;
         position: sticky;
         top: 2rem;
@@ -511,7 +511,7 @@
         height: 16px;
         margin-right: 0.5rem;
     }
-    
+
     /* Floating Action Button */
     .floating-action-button {
         position: fixed;
@@ -548,7 +548,7 @@
         padding: 4rem 2rem;
         background: white;
         border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .empty-state h2 {
@@ -593,7 +593,7 @@
         border-radius: 8px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .mobile-classifieds-section h2 {
@@ -658,7 +658,7 @@
         border-radius: 8px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .mobile-latest-section h2 {
@@ -720,112 +720,113 @@
         .news-container {
             grid-template-columns: 1fr;
         }
-        
+
         .sidebar {
             position: static;
             margin-top: 2rem;
         }
-        
+
         .hero-section {
             grid-template-columns: 1fr;
             grid-template-rows: 300px 150px 150px;
             height: auto;
         }
-        
+
         .hero-main-carousel {
             grid-row: span 1;
         }
     }
 
     @media (max-width: 768px) {
+
         /* Show mobile sections, hide desktop sidebar */
         .mobile-classifieds {
             display: block;
             margin: 1.5rem 0;
         }
-        
+
         .mobile-latest-news {
             display: block;
             margin: 1.5rem 0;
         }
-        
+
         .sidebar {
             display: none;
         }
-        
+
         .hero-section {
             grid-template-columns: 1fr;
             grid-template-rows: 250px 120px 120px;
         }
-        
+
         .content-grid {
             grid-template-columns: 1fr;
         }
-        
+
         .floating-action-button {
             bottom: 1rem;
             right: 1rem;
             width: 50px;
             height: 50px;
         }
-        
+
         .floating-action-button svg {
             width: 20px;
             height: 20px;
         }
-        
+
         .carousel-btn {
             width: 35px;
             height: 35px;
         }
-        
+
         .carousel-btn svg {
             width: 14px;
             height: 14px;
         }
-        
+
         /* Adjust mobile sections spacing */
         .mobile-classifieds-section {
             padding: 1rem;
             margin-bottom: 1rem;
         }
-        
+
         .mobile-classifieds-section h2 {
             font-size: 1.2rem;
             margin-bottom: 1rem;
         }
-        
+
         .classified-card-link {
             margin-bottom: 0.75rem;
         }
-        
+
         .classified-card {
             padding: 0.75rem;
         }
-        
+
         .classified-card .content h4 {
             font-size: 0.9rem;
         }
-        
+
         .mobile-latest-section {
             padding: 1rem;
             margin-bottom: 1rem;
         }
-        
+
         .mobile-latest-section h2 {
             font-size: 1.2rem;
             margin-bottom: 1rem;
         }
-        
+
         .mobile-latest-section .sidebar-item {
             padding: 0.75rem 0;
         }
-        
+
         .mobile-latest-section .sidebar-item img {
             width: 70px;
             height: 50px;
         }
-        
+
         .mobile-latest-section .sidebar-item h4 {
             font-size: 0.85rem;
         }
@@ -835,47 +836,63 @@
         .carousel-slide .overlay {
             padding: 1rem;
         }
-        
+
         .carousel-slide h1 {
             font-size: 1.4rem;
         }
-        
+
         .hero-side-carousel .carousel-slide h3 {
             font-size: 0.9rem;
         }
-        
+
         .news-card .content {
             padding: 1rem;
         }
-        
+
         .sidebar {
             padding: 1rem;
         }
-        
+
         .carousel-controls {
             padding: 0 0.5rem;
         }
-        
+
         .carousel-btn {
             width: 30px;
             height: 30px;
         }
-        
+
         .carousel-btn svg {
             width: 12px;
             height: 12px;
         }
     }
-
-
-
-       
 </style>
 {% endblock %}
 
 
 {% block content %}
 <div class="container">
+    <!-- Notification Banner (shown when user rejects notifications) -->
+    <div id="notificationBanner" class="notification-banner">
+        <div class="notification-banner-content">
+            <svg class="notification-banner-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 17h5l-5 5v-5zM4.868 19.718A8.966 8.966 0 0112 21a8.966 8.966 0 017.132-1.282M6 12a6 6 0 1112 0v1.5a2.5 2.5 0 005 0V12a11 11 0 10-22 0v1.5a2.5 2.5 0 005 0V12z" />
+            </svg>
+            <p class="notification-banner-text">
+                Allow notifications to receive the latest updates in your area
+            </p>
+        </div>
+        <div class="notification-banner-buttons">
+            <button class="btn-get-notified" id="bannerGetNotified">Get Notified</button>
+            <button class="btn-dismiss" id="bannerDismiss" aria-label="Dismiss notification banner">
+                &times;
+            </button>
+        </div>
+    </div>
+
     {% if auto_corrected and original_query and corrected_query %}
     <div class="correction-suggestion-banner">
         <span>Showing results for <strong>{{ corrected_query|title }}</strong>.</span>
@@ -892,513 +909,532 @@
         <span>Did you mean <a href="/{{ corrected_query }}/"><strong>{{ corrected_query|title }}</strong></a>?</span>
     </div>
     {% endif %}
-    
+
     {% if showing_google_news %}
     <div class="google-news-notice">
         <p>No local news generated for {{ area.name|title }} yet. We're showing news from Google News instead.</p>
         <p>
             <a href="{% url 'post-create' %}?area={{ area.name }}" class="cta-button">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                    <path fill-rule="evenodd"
+                        d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                        clip-rule="evenodd" />
                 </svg>
                 Create a post to generate local news
             </a>
         </p>
     </div>
     {% endif %}
-    
+
     {% if articles %}
-        <!-- Hero Section with 3 Carousels -->
-        {% if articles|length >= 3 %}
-        <section class="hero-section">
-            <!-- Main Carousel (Left Side) -->
-            <div class="hero-main-carousel">
-                <div class="carousel-container" data-carousel="main">
-                    {% if articles|length >= 5 %}
-                        {% for article in articles|slice:":5" %}
-                        <div class="carousel-slide{% if forloop.first %} active{% endif %}">
-                            <img src="{{ article.cover_image }}" alt="{{ article.title }}">
-                            <div class="overlay">
-                                {% if article.is_external %}
-                                    <span class="category-tag external">Google News</span>
-                                {% else %}
-                                    <span class="category-tag">{{ article.category|title }}</span>
-                                {% endif %}
-                                <h1>
-                                    {% if article.is_external %}
-                                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
-                                            {{ article.title }}
-                                        </a>
-                                    {% else %}
-                                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
-                                            {{ article.title }}
-                                        </a>
-                                    {% endif %}
-                                </h1>
-                                <div class="meta">
-                                    {% if article.is_external %}
-                                        {{ article.published_at|date:"F j, Y" }}
-                                    {% else %}
-                                        {{ article.created_at|date:"F j, Y" }} • {{ article.likes|default:0 }} likes
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <!-- Fallback: repeat articles if less than 5 -->
-                        {% for article in articles %}
-                        <div class="carousel-slide{% if forloop.first %} active{% endif %}">
-                            <img src="{{ article.cover_image }}" alt="{{ article.title }}">
-                            <div class="overlay">
-                                {% if article.is_external %}
-                                    <span class="category-tag external">Google News</span>
-                                {% else %}
-                                    <span class="category-tag">{{ article.category|title }}</span>
-                                {% endif %}
-                                <h1>
-                                    {% if article.is_external %}
-                                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
-                                            {{ article.title }}
-                                        </a>
-                                    {% else %}
-                                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
-                                            {{ article.title }}
-                                        </a>
-                                    {% endif %}
-                                </h1>
-                                <div class="meta">
-                                    {% if article.is_external %}
-                                        {{ article.published_at|date:"F j, Y" }}
-                                    {% else %}
-                                        {{ article.created_at|date:"F j, Y" }} • {{ article.likes|default:0 }} likes
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-                
-                <!-- Main Carousel Controls (only show if more than 1 slide) -->
-                {% if articles|length > 1 %}
-                <div class="carousel-controls">
-                    <button class="carousel-btn prev-btn" data-carousel="main" aria-label="Previous slide">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-                    <button class="carousel-btn next-btn" data-carousel="main" aria-label="Next slide">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-                </div>
-                
-                <!-- Main Carousel Indicators -->
-                <div class="carousel-indicators">
-                    {% if articles|length >= 5 %}
-                        {% for article in articles|slice:":5" %}
-                        <button class="carousel-indicator{% if forloop.first %} active{% endif %}" data-carousel="main" data-slide="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
-                        {% endfor %}
-                    {% else %}
-                        {% for article in articles %}
-                        <button class="carousel-indicator{% if forloop.first %} active{% endif %}" data-carousel="main" data-slide="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-                {% endif %}
-            </div>
-            
-            <!-- Top Side Carousel -->
-            {% if articles|length >= 2 %}
-            <div class="hero-side-carousel">
-                <div class="carousel-container" data-carousel="side1">
-                    {% if articles|length >= 8 %}
-                        {% for article in articles|slice:"5:8" %}
-                        <div class="carousel-slide{% if forloop.first %} active{% endif %}">
-                            <img src="{{ article.cover_image }}" alt="{{ article.title }}">
-                            <div class="overlay">
-                                {% if article.is_external %}
-                                    <span class="category-tag external">Google News</span>
-                                {% else %}
-                                    <span class="category-tag">{{ article.category|title }}</span>
-                                {% endif %}
-                                <h3>
-                                    {% if article.is_external %}
-                                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
-                                            {{ article.title }}
-                                        </a>
-                                    {% else %}
-                                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
-                                            {{ article.title }}
-                                        </a>
-                                    {% endif %}
-                                </h3>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <!-- Show second article if available -->
-                        {% with article=articles.1 %}
-                        <div class="carousel-slide active">
-                            <img src="{{ article.cover_image }}" alt="{{ article.title }}">
-                            <div class="overlay">
-                                {% if article.is_external %}
-                                    <span class="category-tag external">Google News</span>
-                                {% else %}
-                                    <span class="category-tag">{{ article.category|title }}</span>
-                                {% endif %}
-                                <h3>
-                                    {% if article.is_external %}
-                                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
-                                            {{ article.title }}
-                                        </a>
-                                    {% else %}
-                                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
-                                            {{ article.title }}
-                                        </a>
-                                    {% endif %}
-                                </h3>
-                            </div>
-                        </div>
-                        {% endwith %}
-                    {% endif %}
-                </div>
-                
-                <!-- Side Carousel 1 Controls (only if enough articles) -->
-                {% if articles|length >= 8 %}
-                <div class="carousel-controls">
-                    <button class="carousel-btn prev-btn" data-carousel="side1" aria-label="Previous slide">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-                    <button class="carousel-btn next-btn" data-carousel="side1" aria-label="Next slide">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-                </div>
-                
-                <!-- Side Carousel 1 Indicators -->
-                <div class="carousel-indicators">
-                    {% for article in articles|slice:"5:8" %}
-                    <button class="carousel-indicator{% if forloop.first %} active{% endif %}" data-carousel="side1" data-slide="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
-            {% endif %}
-            
-            <!-- Bottom Side Carousel -->
-            {% if articles|length >= 3 %}
-            <div class="hero-side-carousel">
-                <div class="carousel-container" data-carousel="side2">
-                    {% if articles|length >= 11 %}
-                        {% for article in articles|slice:"8:11" %}
-                        <div class="carousel-slide{% if forloop.first %} active{% endif %}">
-                            <img src="{{ article.cover_image }}" alt="{{ article.title }}">
-                            <div class="overlay">
-                                {% if article.is_external %}
-                                    <span class="category-tag external">Google News</span>
-                                {% else %}
-                                    <span class="category-tag">{{ article.category|title }}</span>
-                                {% endif %}
-                                <h3>
-                                    {% if article.is_external %}
-                                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
-                                            {{ article.title }}
-                                        </a>
-                                    {% else %}
-                                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
-                                            {{ article.title }}
-                                        </a>
-                                    {% endif %}
-                                </h3>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <!-- Show third article if available -->
-                        {% if articles.2 %}
-                        {% with article=articles.2 %}
-                        <div class="carousel-slide active">
-                            <img src="{{ article.cover_image }}" alt="{{ article.title }}">
-                            <div class="overlay">
-                                {% if article.is_external %}
-                                    <span class="category-tag external">Google News</span>
-                                {% else %}
-                                    <span class="category-tag">{{ article.category|title }}</span>
-                                {% endif %}
-                                <h3>
-                                    {% if article.is_external %}
-                                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
-                                            {{ article.title }}
-                                        </a>
-                                    {% else %}
-                                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
-                                            {{ article.title }}
-                                        </a>
-                                    {% endif %}
-                                </h3>
-                            </div>
-                        </div>
-                        {% endwith %}
+    <!-- Hero Section with 3 Carousels -->
+    {% if articles|length >= 3 %}
+    <section class="hero-section">
+        <!-- Main Carousel (Left Side) -->
+        <div class="hero-main-carousel">
+            <div class="carousel-container" data-carousel="main">
+                {% if articles|length >= 5 %}
+                {% for article in articles|slice:":5" %}
+                <div class="carousel-slide{% if forloop.first %} active{% endif %}">
+                    <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                    <div class="overlay">
+                        {% if article.is_external %}
+                        <span class="category-tag external">Google News</span>
+                        {% else %}
+                        <span class="category-tag">{{ article.category|title }}</span>
                         {% endif %}
-                    {% endif %}
-                </div>
-                
-                <!-- Side Carousel 2 Controls (only if enough articles) -->
-                {% if articles|length >= 11 %}
-                <div class="carousel-controls">
-                    <button class="carousel-btn prev-btn" data-carousel="side2" aria-label="Previous slide">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-                    <button class="carousel-btn next-btn" data-carousel="side2" aria-label="Next slide">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-                </div>
-                
-                <!-- Side Carousel 2 Indicators -->
-                <div class="carousel-indicators">
-                    {% for article in articles|slice:"8:11" %}
-                    <button class="carousel-indicator{% if forloop.first %} active{% endif %}" data-carousel="side2" data-slide="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
-            {% endif %}
-        </section>
-        {% endif %}
-        
-        <!-- Mobile Classifieds (shown directly after hero on mobile) -->
-        {% if ad_categories_list %}
-        <div class="mobile-classifieds">
-            <div class="mobile-classifieds-section">
-                <h2>Classifieds</h2>
-                {% for category_data in ad_categories_list|slice:":3" %}
-                    <a href="{% url 'advertisements_by_category' area_name=area.name category=category_data.0 %}" class="classified-card-link">
-                        <div class="classified-card">
-                            <div class="content">
-                                <h4>{{ category_data.0|title }}</h4>
-                                <div class="meta">{{ category_data.1|length }} listing{{ category_data.1|length|pluralize }}</div>
-                            </div>
-                        </div>
-                    </a>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- Mobile Latest News (shown after classifieds on mobile) -->
-        <div class="mobile-latest-news">
-            <div class="mobile-latest-section">
-                <h2>Latest Updates</h2>
-                {% for article in articles|slice:":4" %}
-                    <div class="sidebar-item">
-                        <img src="{{ article.cover_image }}" alt="{{ article.title }}">
-                        <div class="content">
-                            <h4>
-                                {% if article.is_external %}
-                                    <a href="{{ article.external_url }}" target="_blank" rel="noopener">
-                                        {{ article.title|truncatechars:60 }}
-                                    </a>
-                                {% else %}
-                                    <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
-                                        {{ article.title|truncatechars:60 }}
-                                    </a>
-                                {% endif %}
-                            </h4>
-                            <div class="meta">
-                                {% if article.is_external %}
-                                    {{ article.published_at|date:"M j" }} • Google News
-                                {% else %}
-                                    {{ article.created_at|date:"M j" }} • {{ article.likes|default:0 }} likes
-                                {% endif %}
-                            </div>
+                        <h1>
+                            {% if article.is_external %}
+                            <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                                {{ article.title }}
+                            </a>
+                            {% else %}
+                            <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                                {{ article.title }}
+                            </a>
+                            {% endif %}
+                        </h1>
+                        <div class="meta">
+                            {% if article.is_external %}
+                            {{ article.published_at|date:"F j, Y" }}
+                            {% else %}
+                            {{ article.created_at|date:"F j, Y" }} • {{ article.likes|default:0 }} likes
+                            {% endif %}
                         </div>
                     </div>
+                </div>
                 {% endfor %}
+                {% else %}
+                <!-- Fallback: repeat articles if less than 5 -->
+                {% for article in articles %}
+                <div class="carousel-slide{% if forloop.first %} active{% endif %}">
+                    <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                    <div class="overlay">
+                        {% if article.is_external %}
+                        <span class="category-tag external">Google News</span>
+                        {% else %}
+                        <span class="category-tag">{{ article.category|title }}</span>
+                        {% endif %}
+                        <h1>
+                            {% if article.is_external %}
+                            <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                                {{ article.title }}
+                            </a>
+                            {% else %}
+                            <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                                {{ article.title }}
+                            </a>
+                            {% endif %}
+                        </h1>
+                        <div class="meta">
+                            {% if article.is_external %}
+                            {{ article.published_at|date:"F j, Y" }}
+                            {% else %}
+                            {{ article.created_at|date:"F j, Y" }} • {{ article.likes|default:0 }} likes
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
             </div>
+
+            <!-- Main Carousel Controls (only show if more than 1 slide) -->
+            {% if articles|length > 1 %}
+            <div class="carousel-controls">
+                <button class="carousel-btn prev-btn" data-carousel="main" aria-label="Previous slide">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <button class="carousel-btn next-btn" data-carousel="main" aria-label="Next slide">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Main Carousel Indicators -->
+            <div class="carousel-indicators">
+                {% if articles|length >= 5 %}
+                {% for article in articles|slice:":5" %}
+                <button class="carousel-indicator{% if forloop.first %} active{% endif %}" data-carousel="main"
+                    data-slide="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
+                {% endfor %}
+                {% else %}
+                {% for article in articles %}
+                <button class="carousel-indicator{% if forloop.first %} active{% endif %}" data-carousel="main"
+                    data-slide="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
+                {% endfor %}
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
 
-        <!-- Main Content Layout -->
-        <div class="news-container">
-            <!-- Main Content Area -->
-            <main class="main-content">
-                <!-- Content Grid -->
-                <section class="content-grid">
-                    {% for article in articles %}
-                        <article class="news-card">
-                            <img src="{{ article.cover_image }}" alt="{{ article.title }}">
-                            <div class="content">
-                                {% if article.is_external %}
-                                    <span class="category-tag external">Google News</span>
-                                {% else %}
-                                    <span class="category-tag">{{ article.category|title }}</span>
-                                {% endif %}
-                                <h3>
-                                    {% if article.is_external %}
-                                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
-                                            {{ article.title }}
-                                        </a>
-                                    {% else %}
-                                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
-                                            {{ article.title }}
-                                        </a>
-                                    {% endif %}
-                                </h3>
-                                <p class="excerpt">{{ article.content|truncatechars:120 }}</p>
-                                <div class="meta">
-                                    <span>
-                                        {% if article.is_external %}
-                                            {{ article.published_at|date:"M j" }}
-                                        {% else %}
-                                            {{ article.created_at|date:"M j" }}
-                                        {% endif %}
-                                    </span>
-                                    {% if not article.is_external %}
-                                        <span>{{ article.likes|default:0 }} likes</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </article>
-                        
-                        <!-- Insert ad every 3 articles -->
-                        {% if forloop.counter|divisibleby:3 and ad_categories_list %}
-                            {% if forloop.counter == 3 and ad_categories_list.0 %}
-                                <article class="ad-card">
-                                    <div class="ad-badge">Sponsored</div>
-                                    {% if ad_categories_list.0.1 and ad_categories_list.0.1.0.image %}
-                                        <div class="ad-image-preview">
-                                            <img src="{{ ad_categories_list.0.1.0.image.url }}" alt="Advertisement" class="ad-preview-img">
-                                        </div>
-                                    {% endif %}
-                                    <h4>{{ ad_categories_list.0.0|title }} Classifieds</h4>
-                                    {% if ad_categories_list.0.1 %}
-                                        <p>{{ ad_categories_list.0.1.0.content|truncatechars:80 }}</p>
-                                        <small class="ad-meta">by {{ ad_categories_list.0.1.0.advertiser_name|default:"Anonymous" }} • {{ ad_categories_list.0.1.0.created_at|timesince }} ago</small>
-                                    {% else %}
-                                        <p>Browse local {{ ad_categories_list.0.0|lower }} listings in {{ area.name|title }}.</p>
-                                    {% endif %}
-                                    <a href="{% url 'advertisements_by_category' area_name=area.name category=ad_categories_list.0.0 %}" class="ad-link">
-                                        View {{ ad_categories_list.0.1|length }} listing{{ ad_categories_list.0.1|length|pluralize }} →
-                                    </a>
-                                </article>
-                            {% elif forloop.counter == 6 and ad_categories_list.1 %}
-                                <article class="ad-card">
-                                    <div class="ad-badge">Sponsored</div>
-                                    {% if ad_categories_list.1.1 and ad_categories_list.1.1.0.image %}
-                                        <div class="ad-image-preview">
-                                            <img src="{{ ad_categories_list.1.1.0.image.url }}" alt="Advertisement" class="ad-preview-img">
-                                        </div>
-                                    {% endif %}
-                                    <h4>{{ ad_categories_list.1.0|title }} Classifieds</h4>
-                                    {% if ad_categories_list.1.1 %}
-                                        <p>{{ ad_categories_list.1.1.0.content|truncatechars:80 }}</p>
-                                        <small class="ad-meta">by {{ ad_categories_list.1.1.0.advertiser_name|default:"Anonymous" }} • {{ ad_categories_list.1.1.0.created_at|timesince }} ago</small>
-                                    {% else %}
-                                        <p>Browse local {{ ad_categories_list.1.0|lower }} listings in {{ area.name|title }}.</p>
-                                    {% endif %}
-                                    <a href="{% url 'advertisements_by_category' area_name=area.name category=ad_categories_list.1.0 %}" class="ad-link">
-                                        View {{ ad_categories_list.1.1|length }} listing{{ ad_categories_list.1.1|length|pluralize }} →
-                                    </a>
-                                </article>
-                            {% elif forloop.counter == 9 and ad_categories_list.2 %}
-                                <article class="ad-card">
-                                    <div class="ad-badge">Sponsored</div>
-                                    {% if ad_categories_list.2.1 and ad_categories_list.2.1.0.image %}
-                                        <div class="ad-image-preview">
-                                            <img src="{{ ad_categories_list.2.1.0.image.url }}" alt="Advertisement" class="ad-preview-img">
-                                        </div>
-                                    {% endif %}
-                                    <h4>{{ ad_categories_list.2.0|title }} Classifieds</h4>
-                                    {% if ad_categories_list.2.1 %}
-                                        <p>{{ ad_categories_list.2.1.0.content|truncatechars:80 }}</p>
-                                        <small class="ad-meta">by {{ ad_categories_list.2.1.0.advertiser_name|default:"Anonymous" }} • {{ ad_categories_list.2.1.0.created_at|timesince }} ago</small>
-                                    {% else %}
-                                        <p>Browse local {{ ad_categories_list.2.0|lower }} listings in {{ area.name|title }}.</p>
-                                    {% endif %}
-                                    <a href="{% url 'advertisements_by_category' area_name=area.name category=ad_categories_list.2.0 %}" class="ad-link">
-                                        View {{ ad_categories_list.2.1|length }} listing{{ ad_categories_list.2.1|length|pluralize }} →
-                                    </a>
-                                </article>
-                            {% endif %}
+        <!-- Top Side Carousel -->
+        {% if articles|length >= 2 %}
+        <div class="hero-side-carousel">
+            <div class="carousel-container" data-carousel="side1">
+                {% if articles|length >= 8 %}
+                {% for article in articles|slice:"5:8" %}
+                <div class="carousel-slide{% if forloop.first %} active{% endif %}">
+                    <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                    <div class="overlay">
+                        {% if article.is_external %}
+                        <span class="category-tag external">Google News</span>
+                        {% else %}
+                        <span class="category-tag">{{ article.category|title }}</span>
                         {% endif %}
-                    {% endfor %}
-                </section>
-            </main>
-            
-            <!-- Sidebar -->
-            <aside class="sidebar">
-                <h2>Latest Updates</h2>
-                {% for article in articles|slice:":8" %}
-                    <div class="sidebar-item">
-                        <img src="{{ article.cover_image }}" alt="{{ article.title }}">
-                        <div class="content">
-                            <h4>
-                                {% if article.is_external %}
-                                    <a href="{{ article.external_url }}" target="_blank" rel="noopener">
-                                        {{ article.title|truncatechars:60 }}
-                                    </a>
-                                {% else %}
-                                    <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
-                                        {{ article.title|truncatechars:60 }}
-                                    </a>
-                                {% endif %}
-                            </h4>
-                            <div class="meta">
-                                {% if article.is_external %}
-                                    {{ article.published_at|date:"M j" }} • Google News
-                                {% else %}
-                                    {{ article.created_at|date:"M j" }} • {{ article.likes|default:0 }} likes
-                                {% endif %}
-                            </div>
+                        <h3>
+                            {% if article.is_external %}
+                            <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                                {{ article.title }}
+                            </a>
+                            {% else %}
+                            <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                                {{ article.title }}
+                            </a>
+                            {% endif %}
+                        </h3>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <!-- Show second article if available -->
+                {% with article=articles.1 %}
+                <div class="carousel-slide active">
+                    <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                    <div class="overlay">
+                        {% if article.is_external %}
+                        <span class="category-tag external">Google News</span>
+                        {% else %}
+                        <span class="category-tag">{{ article.category|title }}</span>
+                        {% endif %}
+                        <h3>
+                            {% if article.is_external %}
+                            <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                                {{ article.title }}
+                            </a>
+                            {% else %}
+                            <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                                {{ article.title }}
+                            </a>
+                            {% endif %}
+                        </h3>
+                    </div>
+                </div>
+                {% endwith %}
+                {% endif %}
+            </div>
+
+            <!-- Side Carousel 1 Controls (only if enough articles) -->
+            {% if articles|length >= 8 %}
+            <div class="carousel-controls">
+                <button class="carousel-btn prev-btn" data-carousel="side1" aria-label="Previous slide">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <button class="carousel-btn next-btn" data-carousel="side1" aria-label="Next slide">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Side Carousel 1 Indicators -->
+            <div class="carousel-indicators">
+                {% for article in articles|slice:"5:8" %}
+                <button class="carousel-indicator{% if forloop.first %} active{% endif %}" data-carousel="side1"
+                    data-slide="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Bottom Side Carousel -->
+        {% if articles|length >= 3 %}
+        <div class="hero-side-carousel">
+            <div class="carousel-container" data-carousel="side2">
+                {% if articles|length >= 11 %}
+                {% for article in articles|slice:"8:11" %}
+                <div class="carousel-slide{% if forloop.first %} active{% endif %}">
+                    <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                    <div class="overlay">
+                        {% if article.is_external %}
+                        <span class="category-tag external">Google News</span>
+                        {% else %}
+                        <span class="category-tag">{{ article.category|title }}</span>
+                        {% endif %}
+                        <h3>
+                            {% if article.is_external %}
+                            <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                                {{ article.title }}
+                            </a>
+                            {% else %}
+                            <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                                {{ article.title }}
+                            </a>
+                            {% endif %}
+                        </h3>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <!-- Show third article if available -->
+                {% if articles.2 %}
+                {% with article=articles.2 %}
+                <div class="carousel-slide active">
+                    <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                    <div class="overlay">
+                        {% if article.is_external %}
+                        <span class="category-tag external">Google News</span>
+                        {% else %}
+                        <span class="category-tag">{{ article.category|title }}</span>
+                        {% endif %}
+                        <h3>
+                            {% if article.is_external %}
+                            <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                                {{ article.title }}
+                            </a>
+                            {% else %}
+                            <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                                {{ article.title }}
+                            </a>
+                            {% endif %}
+                        </h3>
+                    </div>
+                </div>
+                {% endwith %}
+                {% endif %}
+                {% endif %}
+            </div>
+
+            <!-- Side Carousel 2 Controls (only if enough articles) -->
+            {% if articles|length >= 11 %}
+            <div class="carousel-controls">
+                <button class="carousel-btn prev-btn" data-carousel="side2" aria-label="Previous slide">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <button class="carousel-btn next-btn" data-carousel="side2" aria-label="Next slide">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Side Carousel 2 Indicators -->
+            <div class="carousel-indicators">
+                {% for article in articles|slice:"8:11" %}
+                <button class="carousel-indicator{% if forloop.first %} active{% endif %}" data-carousel="side2"
+                    data-slide="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    <!-- Mobile Classifieds (shown directly after hero on mobile) -->
+    {% if ad_categories_list %}
+    <div class="mobile-classifieds">
+        <div class="mobile-classifieds-section">
+            <h2>Classifieds</h2>
+            {% for category_data in ad_categories_list|slice:":3" %}
+            <a href="{% url 'advertisements_by_category' area_name=area.name category=category_data.0 %}"
+                class="classified-card-link">
+                <div class="classified-card">
+                    <div class="content">
+                        <h4>{{ category_data.0|title }}</h4>
+                        <div class="meta">{{ category_data.1|length }} listing{{ category_data.1|length|pluralize }}
                         </div>
                     </div>
-                {% endfor %}
-                
-                <!-- Classified Ads in Sidebar -->
-                {% if ad_categories_list %}
-                    <h2 style="margin-top: 2rem;">Classifieds</h2>
-                    {% for category_data in ad_categories_list|slice:":3" %}
-                        <div class="sidebar-item" style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
-                            <div class="content">
-                                <h4>
-                                    <a href="{% url 'advertisements_by_category' area_name=area.name category=category_data.0 %}">
-                                        {{ category_data.0|title }}
-                                    </a>
-                                </h4>
-                                <div class="meta">{{ category_data.1|length }} listing{{ category_data.1|length|pluralize }}</div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            </aside>
-        </div>
-    {% else %}
-        <!-- No articles available -->
-        <div class="empty-state">
-            <h2>No news found</h2>
-            <p>Be the first to create content for this community and help generate local news.</p>
-            <a href="{% url 'post-create' %}?area={{ area.name }}" class="create-post-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-                </svg>
-                Create a post
+                </div>
             </a>
+            {% endfor %}
         </div>
+    </div>
     {% endif %}
-    
+
+    <!-- Mobile Latest News (shown after classifieds on mobile) -->
+    <div class="mobile-latest-news">
+        <div class="mobile-latest-section">
+            <h2>Latest Updates</h2>
+            {% for article in articles|slice:":4" %}
+            <div class="sidebar-item">
+                <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                <div class="content">
+                    <h4>
+                        {% if article.is_external %}
+                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                            {{ article.title|truncatechars:60 }}
+                        </a>
+                        {% else %}
+                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                            {{ article.title|truncatechars:60 }}
+                        </a>
+                        {% endif %}
+                    </h4>
+                    <div class="meta">
+                        {% if article.is_external %}
+                        {{ article.published_at|date:"M j" }} • Google News
+                        {% else %}
+                        {{ article.created_at|date:"M j" }} • {{ article.likes|default:0 }} likes
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Main Content Layout -->
+    <div class="news-container">
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Content Grid -->
+            <section class="content-grid">
+                {% for article in articles %}
+                <article class="news-card">
+                    <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                    <div class="content">
+                        {% if article.is_external %}
+                        <span class="category-tag external">Google News</span>
+                        {% else %}
+                        <span class="category-tag">{{ article.category|title }}</span>
+                        {% endif %}
+                        <h3>
+                            {% if article.is_external %}
+                            <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                                {{ article.title }}
+                            </a>
+                            {% else %}
+                            <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                                {{ article.title }}
+                            </a>
+                            {% endif %}
+                        </h3>
+                        <p class="excerpt">{{ article.content|truncatechars:120 }}</p>
+                        <div class="meta">
+                            <span>
+                                {% if article.is_external %}
+                                {{ article.published_at|date:"M j" }}
+                                {% else %}
+                                {{ article.created_at|date:"M j" }}
+                                {% endif %}
+                            </span>
+                            {% if not article.is_external %}
+                            <span>{{ article.likes|default:0 }} likes</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Insert ad every 3 articles -->
+                {% if forloop.counter|divisibleby:3 and ad_categories_list %}
+                {% if forloop.counter == 3 and ad_categories_list.0 %}
+                <article class="ad-card">
+                    <div class="ad-badge">Sponsored</div>
+                    {% if ad_categories_list.0.1 and ad_categories_list.0.1.0.image %}
+                    <div class="ad-image-preview">
+                        <img src="{{ ad_categories_list.0.1.0.image.url }}" alt="Advertisement" class="ad-preview-img">
+                    </div>
+                    {% endif %}
+                    <h4>{{ ad_categories_list.0.0|title }} Classifieds</h4>
+                    {% if ad_categories_list.0.1 %}
+                    <p>{{ ad_categories_list.0.1.0.content|truncatechars:80 }}</p>
+                    <small class="ad-meta">by {{ ad_categories_list.0.1.0.advertiser_name|default:"Anonymous" }} • {{
+                        ad_categories_list.0.1.0.created_at|timesince }} ago</small>
+                    {% else %}
+                    <p>Browse local {{ ad_categories_list.0.0|lower }} listings in {{ area.name|title }}.</p>
+                    {% endif %}
+                    <a href="{% url 'advertisements_by_category' area_name=area.name category=ad_categories_list.0.0 %}"
+                        class="ad-link">
+                        View {{ ad_categories_list.0.1|length }} listing{{ ad_categories_list.0.1|length|pluralize }} →
+                    </a>
+                </article>
+                {% elif forloop.counter == 6 and ad_categories_list.1 %}
+                <article class="ad-card">
+                    <div class="ad-badge">Sponsored</div>
+                    {% if ad_categories_list.1.1 and ad_categories_list.1.1.0.image %}
+                    <div class="ad-image-preview">
+                        <img src="{{ ad_categories_list.1.1.0.image.url }}" alt="Advertisement" class="ad-preview-img">
+                    </div>
+                    {% endif %}
+                    <h4>{{ ad_categories_list.1.0|title }} Classifieds</h4>
+                    {% if ad_categories_list.1.1 %}
+                    <p>{{ ad_categories_list.1.1.0.content|truncatechars:80 }}</p>
+                    <small class="ad-meta">by {{ ad_categories_list.1.1.0.advertiser_name|default:"Anonymous" }} • {{
+                        ad_categories_list.1.1.0.created_at|timesince }} ago</small>
+                    {% else %}
+                    <p>Browse local {{ ad_categories_list.1.0|lower }} listings in {{ area.name|title }}.</p>
+                    {% endif %}
+                    <a href="{% url 'advertisements_by_category' area_name=area.name category=ad_categories_list.1.0 %}"
+                        class="ad-link">
+                        View {{ ad_categories_list.1.1|length }} listing{{ ad_categories_list.1.1|length|pluralize }} →
+                    </a>
+                </article>
+                {% elif forloop.counter == 9 and ad_categories_list.2 %}
+                <article class="ad-card">
+                    <div class="ad-badge">Sponsored</div>
+                    {% if ad_categories_list.2.1 and ad_categories_list.2.1.0.image %}
+                    <div class="ad-image-preview">
+                        <img src="{{ ad_categories_list.2.1.0.image.url }}" alt="Advertisement" class="ad-preview-img">
+                    </div>
+                    {% endif %}
+                    <h4>{{ ad_categories_list.2.0|title }} Classifieds</h4>
+                    {% if ad_categories_list.2.1 %}
+                    <p>{{ ad_categories_list.2.1.0.content|truncatechars:80 }}</p>
+                    <small class="ad-meta">by {{ ad_categories_list.2.1.0.advertiser_name|default:"Anonymous" }} • {{
+                        ad_categories_list.2.1.0.created_at|timesince }} ago</small>
+                    {% else %}
+                    <p>Browse local {{ ad_categories_list.2.0|lower }} listings in {{ area.name|title }}.</p>
+                    {% endif %}
+                    <a href="{% url 'advertisements_by_category' area_name=area.name category=ad_categories_list.2.0 %}"
+                        class="ad-link">
+                        View {{ ad_categories_list.2.1|length }} listing{{ ad_categories_list.2.1|length|pluralize }} →
+                    </a>
+                </article>
+                {% endif %}
+                {% endif %}
+                {% endfor %}
+            </section>
+        </main>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>Latest Updates</h2>
+            {% for article in articles|slice:":8" %}
+            <div class="sidebar-item">
+                <img src="{{ article.cover_image }}" alt="{{ article.title }}">
+                <div class="content">
+                    <h4>
+                        {% if article.is_external %}
+                        <a href="{{ article.external_url }}" target="_blank" rel="noopener">
+                            {{ article.title|truncatechars:60 }}
+                        </a>
+                        {% else %}
+                        <a href="{% url 'article_detail_by_slug' area_name=area.name article_slug=article.slug %}">
+                            {{ article.title|truncatechars:60 }}
+                        </a>
+                        {% endif %}
+                    </h4>
+                    <div class="meta">
+                        {% if article.is_external %}
+                        {{ article.published_at|date:"M j" }} • Google News
+                        {% else %}
+                        {{ article.created_at|date:"M j" }} • {{ article.likes|default:0 }} likes
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Classified Ads in Sidebar -->
+            {% if ad_categories_list %}
+            <h2 style="margin-top: 2rem;">Classifieds</h2>
+            {% for category_data in ad_categories_list|slice:":3" %}
+            <div class="sidebar-item"
+                style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
+                <div class="content">
+                    <h4>
+                        <a href="{% url 'advertisements_by_category' area_name=area.name category=category_data.0 %}">
+                            {{ category_data.0|title }}
+                        </a>
+                    </h4>
+                    <div class="meta">{{ category_data.1|length }} listing{{ category_data.1|length|pluralize }}</div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </aside>
+    </div>
+    {% else %}
+    <!-- No articles available -->
+    <div class="empty-state">
+        <h2>No news found</h2>
+        <p>Be the first to create content for this community and help generate local news.</p>
+        <a href="{% url 'post-create' %}?area={{ area.name }}" class="create-post-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd"
+                    d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                    clip-rule="evenodd" />
+            </svg>
+            Create a post
+        </a>
+    </div>
+    {% endif %}
+
     <!-- Floating Action Button -->
     <a href="{% url 'post-create' %}?area={{ area.name }}" class="floating-action-button">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+            <path fill-rule="evenodd"
+                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                clip-rule="evenodd" />
         </svg>
     </a>
 
@@ -1408,123 +1444,175 @@
 {% block extra_js %}
 <script>
     // Show notification popup for this area
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         if (window.notificationManager && '{{ area.name }}') {
-            // Show popup after a short delay to let the page load
-            setTimeout(() => {
-                window.notificationManager.showNotificationPopup('{{ area.name }}');
-            }, 1500);
+            const areaName = '{{ area.name }}';
+
+            // Check if user has been asked and rejected notifications
+            const hasBeenAsked = localStorage.getItem(`notification_asked_${areaName}`);
+            const isSubscribed = window.notificationManager.getSubscriptionStatus(areaName);
+            const bannerDismissed = localStorage.getItem(`notification_banner_dismissed_${areaName}`);
+
+            // Show banner if user was asked but didn't subscribe and hasn't dismissed banner
+            if (hasBeenAsked && !isSubscribed && !bannerDismissed) {
+                setTimeout(() => {
+                    const banner = document.getElementById('notificationBanner');
+                    if (banner) {
+                        banner.classList.add('show');
+                    }
+                }, 1000);
+            } else if (!hasBeenAsked && !isSubscribed) {
+                // Show popup after a short delay to let the page load
+                setTimeout(() => {
+                    window.notificationManager.showNotificationPopup(areaName);
+                }, 1500);
+            }
+
+            // Handle banner "Get Notified" button
+            const getNotifiedBtn = document.getElementById('bannerGetNotified');
+            if (getNotifiedBtn) {
+                getNotifiedBtn.addEventListener('click', async function () {
+                    const hasPermission = await window.notificationManager.requestPermission();
+                    if (hasPermission) {
+                        const success = await window.notificationManager.subscribe(areaName);
+                        if (success) {
+                            window.notificationManager.showToast('Notifications enabled! You\'ll be notified of new articles.', 'success');
+                            // Hide banner
+                            const banner = document.getElementById('notificationBanner');
+                            if (banner) {
+                                banner.classList.remove('show');
+                            }
+                        } else {
+                            window.notificationManager.showToast('Failed to enable notifications. Please try again.', 'error');
+                        }
+                    } else {
+                        window.notificationManager.showToast('Notification permission denied.', 'error');
+                    }
+                });
+            }
+
+            // Handle banner dismiss button
+            const dismissBtn = document.getElementById('bannerDismiss');
+            if (dismissBtn) {
+                dismissBtn.addEventListener('click', function () {
+                    const banner = document.getElementById('notificationBanner');
+                    if (banner) {
+                        banner.classList.remove('show');
+                        // Remember that user dismissed the banner
+                        localStorage.setItem(`notification_banner_dismissed_${areaName}`, 'true');
+                    }
+                });
+            }
         }
     });
 </script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all carousels
-    const carousels = ['main', 'side1', 'side2'];
-    const carouselStates = {};
-    
-    carousels.forEach(carouselId => {
-        const container = document.querySelector(`[data-carousel="${carouselId}"]`);
-        if (!container) return;
-        
-        const slides = container.querySelectorAll('.carousel-slide');
-        const indicators = document.querySelectorAll(`[data-carousel="${carouselId}"].carousel-indicator`);
-        const prevBtn = document.querySelector(`[data-carousel="${carouselId}"].prev-btn`);
-        const nextBtn = document.querySelector(`[data-carousel="${carouselId}"].next-btn`);
-        
-        // Skip carousel initialization if only 1 slide or no slides
-        if (slides.length <= 1) {
-            // Hide controls and indicators for single slide
-            if (prevBtn && nextBtn) {
-                prevBtn.style.display = 'none';
-                nextBtn.style.display = 'none';
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize all carousels
+        const carousels = ['main', 'side1', 'side2'];
+        const carouselStates = {};
+
+        carousels.forEach(carouselId => {
+            const container = document.querySelector(`[data-carousel="${carouselId}"]`);
+            if (!container) return;
+
+            const slides = container.querySelectorAll('.carousel-slide');
+            const indicators = document.querySelectorAll(`[data-carousel="${carouselId}"].carousel-indicator`);
+            const prevBtn = document.querySelector(`[data-carousel="${carouselId}"].prev-btn`);
+            const nextBtn = document.querySelector(`[data-carousel="${carouselId}"].next-btn`);
+
+            // Skip carousel initialization if only 1 slide or no slides
+            if (slides.length <= 1) {
+                // Hide controls and indicators for single slide
+                if (prevBtn && nextBtn) {
+                    prevBtn.style.display = 'none';
+                    nextBtn.style.display = 'none';
+                }
+                const indicatorContainer = container.parentElement.querySelector('.carousel-indicators');
+                if (indicatorContainer && slides.length <= 1) {
+                    indicatorContainer.style.display = 'none';
+                }
+                return;
             }
-            const indicatorContainer = container.parentElement.querySelector('.carousel-indicators');
-            if (indicatorContainer && slides.length <= 1) {
-                indicatorContainer.style.display = 'none';
+
+            // Initialize carousel state
+            carouselStates[carouselId] = {
+                currentSlide: 0,
+                totalSlides: slides.length,
+                slides: slides,
+                indicators: indicators,
+                autoSlideInterval: null
+            };
+
+            function showSlide(carouselId, index) {
+                const state = carouselStates[carouselId];
+
+                // Hide all slides and deactivate indicators
+                state.slides.forEach(slide => slide.classList.remove('active'));
+                state.indicators.forEach(indicator => indicator.classList.remove('active'));
+
+                // Show current slide and activate indicator
+                state.slides[index].classList.add('active');
+                if (state.indicators[index]) {
+                    state.indicators[index].classList.add('active');
+                }
             }
-            return;
-        }
-        
-        // Initialize carousel state
-        carouselStates[carouselId] = {
-            currentSlide: 0,
-            totalSlides: slides.length,
-            slides: slides,
-            indicators: indicators,
-            autoSlideInterval: null
-        };
-        
-        function showSlide(carouselId, index) {
-            const state = carouselStates[carouselId];
-            
-            // Hide all slides and deactivate indicators
-            state.slides.forEach(slide => slide.classList.remove('active'));
-            state.indicators.forEach(indicator => indicator.classList.remove('active'));
-            
-            // Show current slide and activate indicator
-            state.slides[index].classList.add('active');
-            if (state.indicators[index]) {
-                state.indicators[index].classList.add('active');
+
+            function nextSlide(carouselId) {
+                const state = carouselStates[carouselId];
+                state.currentSlide = (state.currentSlide + 1) % state.totalSlides;
+                showSlide(carouselId, state.currentSlide);
             }
-        }
-        
-        function nextSlide(carouselId) {
-            const state = carouselStates[carouselId];
-            state.currentSlide = (state.currentSlide + 1) % state.totalSlides;
-            showSlide(carouselId, state.currentSlide);
-        }
-        
-        function prevSlide(carouselId) {
-            const state = carouselStates[carouselId];
-            state.currentSlide = (state.currentSlide - 1 + state.totalSlides) % state.totalSlides;
-            showSlide(carouselId, state.currentSlide);
-        }
-        
-        // Event listeners for navigation buttons
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => nextSlide(carouselId));
-        }
-        
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => prevSlide(carouselId));
-        }
-        
-        // Event listeners for indicators
-        indicators.forEach((indicator, index) => {
-            indicator.addEventListener('click', () => {
-                carouselStates[carouselId].currentSlide = index;
-                showSlide(carouselId, index);
+
+            function prevSlide(carouselId) {
+                const state = carouselStates[carouselId];
+                state.currentSlide = (state.currentSlide - 1 + state.totalSlides) % state.totalSlides;
+                showSlide(carouselId, state.currentSlide);
+            }
+
+            // Event listeners for navigation buttons
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => nextSlide(carouselId));
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => prevSlide(carouselId));
+            }
+
+            // Event listeners for indicators
+            indicators.forEach((indicator, index) => {
+                indicator.addEventListener('click', () => {
+                    carouselStates[carouselId].currentSlide = index;
+                    showSlide(carouselId, index);
+                });
             });
-        });
-        
-        // Auto-advance carousel (different intervals for each) - only if more than 1 slide
-        if (slides.length > 1) {
-            const intervals = { main: 6000, side1: 4000, side2: 5000 };
-            carouselStates[carouselId].autoSlideInterval = setInterval(() => {
-                nextSlide(carouselId);
-            }, intervals[carouselId]);
-            
-            // Pause auto-advance on hover
-            const carouselParent = container.closest('.hero-main-carousel, .hero-side-carousel');
-            if (carouselParent) {
-                carouselParent.addEventListener('mouseenter', () => {
-                    if (carouselStates[carouselId] && carouselStates[carouselId].autoSlideInterval) {
-                        clearInterval(carouselStates[carouselId].autoSlideInterval);
-                    }
-                });
-                
-                carouselParent.addEventListener('mouseleave', () => {
-                    if (carouselStates[carouselId] && slides.length > 1) {
-                        carouselStates[carouselId].autoSlideInterval = setInterval(() => {
-                            nextSlide(carouselId);
-                        }, intervals[carouselId]);
-                    }
-                });
+
+            // Auto-advance carousel (different intervals for each) - only if more than 1 slide
+            if (slides.length > 1) {
+                const intervals = { main: 6000, side1: 4000, side2: 5000 };
+                carouselStates[carouselId].autoSlideInterval = setInterval(() => {
+                    nextSlide(carouselId);
+                }, intervals[carouselId]);
+
+                // Pause auto-advance on hover
+                const carouselParent = container.closest('.hero-main-carousel, .hero-side-carousel');
+                if (carouselParent) {
+                    carouselParent.addEventListener('mouseenter', () => {
+                        if (carouselStates[carouselId] && carouselStates[carouselId].autoSlideInterval) {
+                            clearInterval(carouselStates[carouselId].autoSlideInterval);
+                        }
+                    });
+
+                    carouselParent.addEventListener('mouseleave', () => {
+                        if (carouselStates[carouselId] && slides.length > 1) {
+                            carouselStates[carouselId].autoSlideInterval = setInterval(() => {
+                                nextSlide(carouselId);
+                            }, intervals[carouselId]);
+                        }
+                    });
+                }
             }
-        }
+        });
     });
-});
 </script>
 {% endblock %}
-
