@@ -27,6 +27,9 @@ import logging
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 import json
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -645,31 +648,6 @@ def advertisements_by_category(request, area_name, category):
     }
     return render(request, 'advertisements_by_category.html', context)
 
-def trending_articles(request):
-    """
-    API endpoint to return trending articles for the post form sidebar
-    """
-    # Get recent articles, limited to 5
-    articles = Article.objects.all().order_by('-created_at')[:5]
-    
-    articles_data = []
-    for article in articles:
-        # Construct the URL for the article
-        if article.area:
-            article_url = f"/{article.area.name}/{article.slug}/"
-        else:
-            article_url = f"/article/{article.pk}/"
-            
-        articles_data.append({
-            'title': article.title,
-            'category': article.category,
-            'created_at': article.created_at.isoformat(),
-            'cover_image': article.cover_image,
-            'url': article_url
-        })
-    
-    return JsonResponse({'articles': articles_data})
-
 @require_POST
 def like_article(request, article_id):
     """
@@ -1181,9 +1159,9 @@ def send_push_notifications(area, article):
         payload = json.dumps(notification_data)
         
         # VAPID keys - you'll need to generate these
-        vapid_private_key = os.environ.get('VAPID_PRIVATE_KEY')
-        vapid_public_key = os.environ.get('VAPID_PUBLIC_KEY')
-        vapid_email = os.environ.get('VAPID_EMAIL', 'your-email@example.com')
+        vapid_private_key = os.getenv('VAPID_PRIVATE_KEY')
+        vapid_public_key = os.getenv('VAPID_PUBLIC_KEY')
+        vapid_email = os.getenv('VAPID_EMAIL', 'your-email@example.com')
         vapid_claims = {"sub": f"mailto:{vapid_email}"}
         
         logger.info(f"VAPID keys loaded: private={'***' if vapid_private_key else 'None'}, public={'***' if vapid_public_key else 'None'}, email={vapid_email}")
@@ -1254,7 +1232,7 @@ def test_notification(request):
         return JsonResponse({
             'success': True, 
             'message': f'Test notification sent for area: {area.name}',
-            'article_id': article.id
+            'article_id': article.id # type: ignore
         })
         
     except Exception as e:
