@@ -584,6 +584,12 @@
     }
 
     /* Mobile Classifieds */
+    .sidebar-item.hidden-classified {
+        display: none;
+    }
+    .classified-card-link.hidden-classified {
+        display: none;
+    }
     .mobile-classifieds {
         display: none;
     }
@@ -1204,18 +1210,21 @@
     <div class="mobile-classifieds">
         <div class="mobile-classifieds-section">
             <h2>Classifieds</h2>
-            {% for category_data in ad_categories_list|slice:":3" %}
-            <a href="{% url 'advertisements_by_category' area_name=area.name category=category_data.0 %}"
-                class="classified-card-link">
-                <div class="classified-card">
-                    <div class="content">
-                        <h4>{{ category_data.0|title }}</h4>
-                        <div class="meta">{{ category_data.1|length }} listing{{ category_data.1|length|pluralize }}
+            <div id="mobile-classifieds-list">
+                {% for category_data in ad_categories_list %}
+                <a href="{% url 'advertisements_by_category' area_name=area.name category=category_data.0 %}" class="classified-card-link {% if forloop.counter > 3 %}hidden-classified{% endif %}">
+                    <div class="classified-card">
+                        <div class="content">
+                            <h4>{{ category_data.0|title }}</h4>
+                            <div class="meta">{{ category_data.1|length }} listing{{ category_data.1|length|pluralize }}</div>
                         </div>
                     </div>
-                </div>
-            </a>
-            {% endfor %}
+                </a>
+                {% endfor %}
+            </div>
+            {% if ad_categories_list|length > 3 %}
+            <button id="show-more-classifieds-mobile" class="btn btn-light w-100" style="margin-top: 1rem; text-align: center; width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; background: #f8f9fa; cursor: pointer;">Show All Categories</button>
+            {% endif %}
         </div>
     </div>
     {% endif %}
@@ -1397,19 +1406,24 @@
             <!-- Classified Ads in Sidebar -->
             {% if ad_categories_list %}
             <h2 style="margin-top: 2rem;">Classifieds</h2>
-            {% for category_data in ad_categories_list|slice:":3" %}
-            <div class="sidebar-item"
-                style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
-                <div class="content">
-                    <h4>
-                        <a href="{% url 'advertisements_by_category' area_name=area.name category=category_data.0 %}">
-                            {{ category_data.0|title }}
-                        </a>
-                    </h4>
-                    <div class="meta">{{ category_data.1|length }} listing{{ category_data.1|length|pluralize }}</div>
+            <div id="sidebar-classifieds">
+                {% for category_data in ad_categories_list %}
+                <div class="sidebar-item classified-item {% if forloop.counter > 3 %}hidden-classified{% endif %}"
+                    style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
+                    <div class="content">
+                        <h4>
+                            <a href="{% url 'advertisements_by_category' area_name=area.name category=category_data.0 %}">
+                                {{ category_data.0|title }}
+                            </a>
+                        </h4>
+                        <div class="meta">{{ category_data.1|length }} listing{{ category_data.1|length|pluralize }}</div>
+                    </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
+            {% if ad_categories_list|length > 3 %}
+            <button id="show-more-classifieds" class="btn btn-light w-100" style="margin-top: 1rem; text-align: center; width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; background: #f8f9fa; cursor: pointer;">Show All Categories</button>
+            {% endif %}
             {% endif %}
         </aside>
     </div>
@@ -1443,32 +1457,25 @@
 
 {% block extra_js %}
 <script>
-    // Show notification popup for this area
     document.addEventListener('DOMContentLoaded', function () {
+        // Notification popup logic
         if (window.notificationManager && '{{ area.name }}') {
             const areaName = '{{ area.name }}';
-
-            // Check if user has been asked and rejected notifications
             const hasBeenAsked = localStorage.getItem(`notification_asked_${areaName}`);
             const isSubscribed = window.notificationManager.getSubscriptionStatus(areaName);
             const bannerDismissed = localStorage.getItem(`notification_banner_dismissed_${areaName}`);
 
-            // Show banner if user was asked but didn't subscribe and hasn't dismissed banner
             if (hasBeenAsked && !isSubscribed && !bannerDismissed) {
                 setTimeout(() => {
                     const banner = document.getElementById('notificationBanner');
-                    if (banner) {
-                        banner.classList.add('show');
-                    }
+                    if (banner) banner.classList.add('show');
                 }, 1000);
             } else if (!hasBeenAsked && !isSubscribed) {
-                // Show popup after a short delay to let the page load
                 setTimeout(() => {
                     window.notificationManager.showNotificationPopup(areaName);
                 }, 1500);
             }
 
-            // Handle banner "Get Notified" button
             const getNotifiedBtn = document.getElementById('bannerGetNotified');
             if (getNotifiedBtn) {
                 getNotifiedBtn.addEventListener('click', async function () {
@@ -1476,14 +1483,10 @@
                     if (hasPermission) {
                         const success = await window.notificationManager.subscribe(areaName);
                         if (success) {
-                            window.notificationManager.showToast('Notifications enabled! You\'ll be notified of new articles.', 'success');
-                            // Hide banner
-                            const banner = document.getElementById('notificationBanner');
-                            if (banner) {
-                                banner.classList.remove('show');
-                            }
+                            window.notificationManager.showToast('Notifications enabled!', 'success');
+                            document.getElementById('notificationBanner')?.classList.remove('show');
                         } else {
-                            window.notificationManager.showToast('Failed to enable notifications. Please try again.', 'error');
+                            window.notificationManager.showToast('Failed to enable notifications.', 'error');
                         }
                     } else {
                         window.notificationManager.showToast('Notification permission denied.', 'error');
@@ -1491,95 +1494,58 @@
                 });
             }
 
-            // Handle banner dismiss button
             const dismissBtn = document.getElementById('bannerDismiss');
             if (dismissBtn) {
                 dismissBtn.addEventListener('click', function () {
-                    const banner = document.getElementById('notificationBanner');
-                    if (banner) {
-                        banner.classList.remove('show');
-                        // Remember that user dismissed the banner
-                        localStorage.setItem(`notification_banner_dismissed_${areaName}`, 'true');
-                    }
+                    document.getElementById('notificationBanner')?.classList.remove('show');
+                    localStorage.setItem(`notification_banner_dismissed_${areaName}`, 'true');
                 });
             }
         }
-    });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Initialize all carousels
+
+        // Carousel logic
         const carousels = ['main', 'side1', 'side2'];
         const carouselStates = {};
-
         carousels.forEach(carouselId => {
             const container = document.querySelector(`[data-carousel="${carouselId}"]`);
             if (!container) return;
 
             const slides = container.querySelectorAll('.carousel-slide');
+            if (slides.length <= 1) {
+                const controls = container.parentElement.querySelector('.carousel-controls');
+                const indicators = container.parentElement.querySelector('.carousel-indicators');
+                if (controls) controls.style.display = 'none';
+                if (indicators) indicators.style.display = 'none';
+                return;
+            }
+
             const indicators = document.querySelectorAll(`[data-carousel="${carouselId}"].carousel-indicator`);
             const prevBtn = document.querySelector(`[data-carousel="${carouselId}"].prev-btn`);
             const nextBtn = document.querySelector(`[data-carousel="${carouselId}"].next-btn`);
 
-            // Skip carousel initialization if only 1 slide or no slides
-            if (slides.length <= 1) {
-                // Hide controls and indicators for single slide
-                if (prevBtn && nextBtn) {
-                    prevBtn.style.display = 'none';
-                    nextBtn.style.display = 'none';
-                }
-                const indicatorContainer = container.parentElement.querySelector('.carousel-indicators');
-                if (indicatorContainer && slides.length <= 1) {
-                    indicatorContainer.style.display = 'none';
-                }
-                return;
-            }
+            carouselStates[carouselId] = { currentSlide: 0, totalSlides: slides.length, slides, indicators, autoSlideInterval: null };
 
-            // Initialize carousel state
-            carouselStates[carouselId] = {
-                currentSlide: 0,
-                totalSlides: slides.length,
-                slides: slides,
-                indicators: indicators,
-                autoSlideInterval: null
-            };
-
-            function showSlide(carouselId, index) {
-                const state = carouselStates[carouselId];
-
-                // Hide all slides and deactivate indicators
-                state.slides.forEach(slide => slide.classList.remove('active'));
-                state.indicators.forEach(indicator => indicator.classList.remove('active'));
-
-                // Show current slide and activate indicator
+            function showSlide(id, index) {
+                const state = carouselStates[id];
+                state.slides.forEach(s => s.classList.remove('active'));
+                state.indicators.forEach(i => i.classList.remove('active'));
                 state.slides[index].classList.add('active');
-                if (state.indicators[index]) {
-                    state.indicators[index].classList.add('active');
-                }
+                if (state.indicators[index]) state.indicators[index].classList.add('active');
             }
 
-            function nextSlide(carouselId) {
-                const state = carouselStates[carouselId];
+            function next(id) {
+                const state = carouselStates[id];
                 state.currentSlide = (state.currentSlide + 1) % state.totalSlides;
-                showSlide(carouselId, state.currentSlide);
+                showSlide(id, state.currentSlide);
             }
 
-            function prevSlide(carouselId) {
+            if (nextBtn) nextBtn.addEventListener('click', () => next(carouselId));
+            if (prevBtn) prevBtn.addEventListener('click', () => {
                 const state = carouselStates[carouselId];
                 state.currentSlide = (state.currentSlide - 1 + state.totalSlides) % state.totalSlides;
                 showSlide(carouselId, state.currentSlide);
-            }
+            });
 
-            // Event listeners for navigation buttons
-            if (nextBtn) {
-                nextBtn.addEventListener('click', () => nextSlide(carouselId));
-            }
-
-            if (prevBtn) {
-                prevBtn.addEventListener('click', () => prevSlide(carouselId));
-            }
-
-            // Event listeners for indicators
             indicators.forEach((indicator, index) => {
                 indicator.addEventListener('click', () => {
                     carouselStates[carouselId].currentSlide = index;
@@ -1587,32 +1553,48 @@
                 });
             });
 
-            // Auto-advance carousel (different intervals for each) - only if more than 1 slide
-            if (slides.length > 1) {
-                const intervals = { main: 6000, side1: 4000, side2: 5000 };
-                carouselStates[carouselId].autoSlideInterval = setInterval(() => {
-                    nextSlide(carouselId);
-                }, intervals[carouselId]);
-
-                // Pause auto-advance on hover
-                const carouselParent = container.closest('.hero-main-carousel, .hero-side-carousel');
-                if (carouselParent) {
-                    carouselParent.addEventListener('mouseenter', () => {
-                        if (carouselStates[carouselId] && carouselStates[carouselId].autoSlideInterval) {
-                            clearInterval(carouselStates[carouselId].autoSlideInterval);
-                        }
-                    });
-
-                    carouselParent.addEventListener('mouseleave', () => {
-                        if (carouselStates[carouselId] && slides.length > 1) {
-                            carouselStates[carouselId].autoSlideInterval = setInterval(() => {
-                                nextSlide(carouselId);
-                            }, intervals[carouselId]);
-                        }
-                    });
-                }
+            const intervals = { main: 6000, side1: 4000, side2: 5000 };
+            const carouselParent = container.closest('.hero-main-carousel, .hero-side-carousel');
+            
+            function startAutoplay() {
+                carouselStates[carouselId].autoSlideInterval = setInterval(() => next(carouselId), intervals[carouselId]);
             }
+            
+            function stopAutoplay() {
+                clearInterval(carouselStates[carouselId].autoSlideInterval);
+            }
+
+            if (carouselParent) {
+                carouselParent.addEventListener('mouseenter', stopAutoplay);
+                carouselParent.addEventListener('mouseleave', startAutoplay);
+            }
+            
+            startAutoplay();
         });
+
+        // Classifieds "Show More" for Sidebar
+        const showMoreBtn = document.getElementById('show-more-classifieds');
+        if (showMoreBtn) {
+            showMoreBtn.addEventListener('click', function() {
+                const hiddenItems = document.querySelectorAll('#sidebar-classifieds .hidden-classified');
+                hiddenItems.forEach(item => {
+                    item.classList.remove('hidden-classified');
+                });
+                this.style.display = 'none';
+            });
+        }
+
+        // Classifieds "Show More" for Mobile
+        const showMoreBtnMobile = document.getElementById('show-more-classifieds-mobile');
+        if (showMoreBtnMobile) {
+            showMoreBtnMobile.addEventListener('click', function() {
+                const hiddenItems = document.querySelectorAll('#mobile-classifieds-list .hidden-classified');
+                hiddenItems.forEach(item => {
+                    item.classList.remove('hidden-classified');
+                });
+                this.style.display = 'none';
+            });
+        }
     });
 </script>
 {% endblock %}
