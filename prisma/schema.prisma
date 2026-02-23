@@ -1,0 +1,99 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Area {
+  id              Int                        @id @default(autoincrement())
+  name            String                     @unique
+  lastGeneratedAt DateTime?
+  latitude        Float?
+  longitude       Float?
+  articles        Article[]
+  posts           Post[]
+  advertisements  Advertisement[]
+  urlModels       URLModel[]
+  subscriptions   NotificationSubscription[]
+}
+
+model Article {
+  id           Int       @id @default(autoincrement())
+  title        String
+  content      String
+  category     String    @default("news")
+  coverImage   String?
+  createdAt    DateTime  @default(now())
+  slug         String    @unique
+  likes        Int       @default(0)
+  reporterName String?
+  areaId       Int?
+  area         Area?     @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  questions    Question[]
+  urlModels    URLModel[]
+
+  @@index([areaId, createdAt])
+}
+
+model Question {
+  id        Int     @id @default(autoincrement())
+  question  String
+  articleId Int
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id           Int      @id @default(autoincrement())
+  content      String
+  datePosted   DateTime @default(now())
+  image        String?
+  reporterName String?
+  areaId       Int
+  area         Area     @relation(fields: [areaId], references: [id], onDelete: Cascade)
+
+  @@index([areaId, datePosted])
+}
+
+model URLModel {
+  id        Int      @id @default(autoincrement())
+  path      String
+  createdAt DateTime @default(now())
+  visits    Int      @default(0)
+  articleId Int?
+  areaId    Int?
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+  area      Area?    @relation(fields: [areaId], references: [id], onDelete: SetNull)
+
+  @@index([path])
+}
+
+model Advertisement {
+  id             Int      @id @default(autoincrement())
+  content        String
+  category       String   @default("general")
+  createdAt      DateTime @default(now())
+  advertiserName String?
+  slug           String   @unique
+  image          String?
+  areaId         Int?
+  area           Area?    @relation(fields: [areaId], references: [id], onDelete: Cascade)
+}
+
+model NotificationSubscription {
+  id        Int      @id @default(autoincrement())
+  endpoint  String
+  p256dhKey String
+  authKey   String
+  userAgent String?
+  createdAt DateTime @default(now())
+  isActive  Boolean  @default(true)
+  areaId    Int
+  area      Area     @relation(fields: [areaId], references: [id], onDelete: Cascade)
+
+  @@unique([areaId, endpoint])
+}
